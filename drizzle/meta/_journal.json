@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1786346041162,
+      "tag": "0000_aspiring_saracen",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786348232512,
+      "tag": "0001_opposite_the_executioner",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786353444290,
+      "tag": "0002_match-results",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786354758091,
+      "tag": "0003_match-confirmations",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786356377263,
+      "tag": "0004_competition-operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786357488294,
+      "tag": "0005_operation-status-transitions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786359357453,
+      "tag": "0006_result-exports",
+      "breakpoints": true
+    }
+  ]
+}
