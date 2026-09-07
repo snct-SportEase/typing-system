@@ -75,7 +75,7 @@ docker compose -f docker-compose.dev.yml up --build
 docker compose -f docker-compose.production.yml up -d --build
 ```
 
-本番サーバーは既定でホストの`127.0.0.1:3000`だけに公開されます。Basic認証の資格情報を保護するため、外部端末から利用する場合はHTTPS対応のリバースプロキシを前段に置いてください。SQLiteデータはComposeの`production_data`ボリュームへ保存されます。
+本番コンテナはホストへポートを直接公開せず、専用external network `typing-public` 上の独立Traefikからのみ公開されます。`typing-system.nitsche-gyouji.com`のDNSを本番サーバーへ向け、先にTraefikリポジトリの初回移行・起動を実施してください。SQLiteデータはComposeの`production_data`ボリュームへ保存されます。
 
 主な確認コマンドは次のとおりです。
 
@@ -87,6 +87,8 @@ npm run test:e2e
 ```
 
 同じ検証とproductionイメージのビルドは、`main`へのpushとPull RequestでGitHub Actionsから自動実行されます。
+
+`main`へのpushでは全CI成功後、同じ本番サーバーの`$HOME/typing-system`へSSHデプロイします。GitHubの`production` Environmentには`SERVER_HOST`、`SERVER_USER`、`SERVER_PORT`、`SSH_PRIVATE_KEY`を登録してください。最初のマージ前にサーバーへリポジトリをcloneし、本番用`.env`を作成し、独立Traefikの移行を完了させてください。
 
 ## License
 

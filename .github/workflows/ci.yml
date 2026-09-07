@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   DATABASE_URL: data/ci.db
@@ -99,3 +99,64 @@ jobs:
 
       - name: Build production image
         run: docker build --tag typing-system:ci .
+
+  deploy:
+    name: Deploy to Server
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - quality
+      - e2e
+      - container
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    permissions: {}
+    steps:
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+        env:
+          TARGET_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          timeout: 20m
+          command_timeout: 20m
+          envs: TARGET_SHA
+          script: |
+            set -eu
+
+            if [ ! -d "$HOME/typing-system/.git" ]; then
+              echo "$HOME/typing-system is not cloned on the server" >&2
+              exit 1
+            fi
+            cd "$HOME/typing-system"
+
+            git fetch origin main
+            git checkout main
+            git merge --ff-only origin/main
+            test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+
+            if [ ! -f .env ]; then
+              echo "$HOME/typing-system/.env is not configured" >&2
+              exit 1
+            fi
+            docker network inspect typing-public >/dev/null
+            test "$(docker inspect -f '{{.State.Health.Status}}' sportease-edge-traefik)" = "healthy"
+            docker compose -f docker-compose.production.yml config --quiet
+
+            docker compose -f docker-compose.production.yml build --pull
+            docker compose -f docker-compose.production.yml up -d
+
+            i=0
+            until [ "$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose -f docker-compose.production.yml ps -q app)" 2>/dev/null || true)" = "healthy" ]; do
+              i=$((i + 1))
+              if [ "$i" -ge 30 ]; then
+                docker compose -f docker-compose.production.yml logs --tail=100 app
+                exit 1
+              fi
+              sleep 2
+            done
+
+            curl -fsS --retry 10 --retry-delay 2 --retry-all-errors https://typing-system.nitsche-gyouji.com/api/health >/dev/null

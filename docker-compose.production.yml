@@ -7,12 +7,15 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
-    ports:
-      - '${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:3000'
     environment:
       DATABASE_URL: /app/data/typing-system.db
       HOST: 0.0.0.0
       PORT: 3000
+      ORIGIN: https://typing-system.nitsche-gyouji.com
+      PROTOCOL_HEADER: x-forwarded-proto
+      HOST_HEADER: x-forwarded-host
+      ADDRESS_HEADER: x-forwarded-for
+      XFF_DEPTH: 1
     volumes:
       - production_data:/app/data
     init: true
@@ -30,6 +33,23 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+    networks:
+      - proxy
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=typing-public'
+      - 'traefik.http.routers.typing-system.rule=Host(`typing-system.nitsche-gyouji.com`)'
+      - 'traefik.http.routers.typing-system.entrypoints=websecure'
+      - 'traefik.http.routers.typing-system.tls=true'
+      - 'traefik.http.routers.typing-system.tls.certresolver=myresolver'
+      - 'traefik.http.routers.typing-system.middlewares=security-headers@file'
+      - 'traefik.http.routers.typing-system.service=typing-system'
+      - 'traefik.http.services.typing-system.loadbalancer.server.port=3000'
+
+networks:
+  proxy:
+    name: typing-public
+    external: true
 
 volumes:
   production_data:
