@@ -201,7 +201,9 @@ function tokenAt(reading, index) {
 	}
 
 	const character = reading[index];
-	if (!romanizationTable[character]) return null;
+	if (!romanizationTable[character]) {
+		return /^[\x20-\x7e]$/.test(character) ? { variants: [character], endIndex: index + 1 } : null;
+	}
 	return { variants: romanizationTable[character], endIndex: index + 1 };
 }
 

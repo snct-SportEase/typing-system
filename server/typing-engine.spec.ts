@@ -31,6 +31,21 @@ describe('romanization conformance', () => {
 	}
 });
 
+describe('literal input', () => {
+	it('accepts printable ASCII for source-code practice', () => {
+		const source = 'printf("%s\\n", value);';
+		const state = createTypingState([{ displayText: source, reading: source }]);
+		for (const [index, key] of [...source].entries()) {
+			expect(
+				applyTypingEvent(state, { type: 'key', key }, startsAt + index, startsAt, endsAt)
+			).toMatchObject({ accepted: true, correct: true });
+		}
+
+		expect(state.completedProblems).toBe(1);
+		expect(state.incorrectTypes).toBe(0);
+	});
+});
+
 describe('typing event conformance', () => {
 	for (const testCase of inputSpecification.event_cases) {
 		it(testCase.description, () => {
