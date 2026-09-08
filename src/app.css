@@ -634,6 +634,17 @@ select {
 	margin-top: 0;
 }
 
+.result-final-actions {
+	display: grid;
+	gap: 8px;
+	justify-items: end;
+}
+
+.result-reset-form {
+	display: flex;
+	gap: 8px;
+}
+
 .disqualification-form {
 	display: grid;
 	grid-template-columns: minmax(200px, 1fr) minmax(160px, 1fr) auto;
@@ -1573,6 +1584,14 @@ select {
 
 	.result-actions {
 		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.result-final-actions {
+		justify-items: stretch;
+	}
+
+	.result-reset-form {
 		flex-direction: column;
 	}
 

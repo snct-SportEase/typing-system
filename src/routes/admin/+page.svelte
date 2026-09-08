@@ -102,6 +102,7 @@
 				force_finish: '強制終了',
 				invalidate: '無効化',
 				retry: '再試合設定',
+				reset: '結果リセット',
 				disqualify: '失格',
 				confirm: '結果確定'
 			}[action] ?? action
@@ -465,17 +466,30 @@
 							<input name="reason" required placeholder="失格の理由" />
 							<button class="danger-button" type="submit"> 失格 </button>
 						</form>
-						<form
-							class="confirmation-actions"
-							method="POST"
-							action="?/confirmResults"
-							onsubmit={(event) => confirmSubmission(event, matchNumber)}
-						>
-							<input type="hidden" name="matchNumber" value={matchNumber} />
-							<button type="submit" disabled={Boolean(confirmation)}>
-								{confirmation ? '確定済み' : '結果を確定'}
-							</button>
-						</form>
+						<div class="result-final-actions">
+							<form
+								class="result-reset-form"
+								method="POST"
+								action="?/competitionOperation"
+								onsubmit={(event) => operationSubmission(event, matchNumber, '結果をリセット')}
+							>
+								<input type="hidden" name="matchNumber" value={matchNumber} />
+								<input type="hidden" name="operation" value="reset" />
+								<input name="reason" required placeholder="リセットの理由" />
+								<button class="danger-button" type="submit">結果をリセット</button>
+							</form>
+							<form
+								class="confirmation-actions"
+								method="POST"
+								action="?/confirmResults"
+								onsubmit={(event) => confirmSubmission(event, matchNumber)}
+							>
+								<input type="hidden" name="matchNumber" value={matchNumber} />
+								<button type="submit" disabled={Boolean(confirmation)}>
+									{confirmation ? '確定済み' : '結果を確定'}
+								</button>
+							</form>
+						</div>
 					</div>
 				{:else}
 					<p class="confirmation-empty">競技終了後に6名分の結果が表示されます。</p>
