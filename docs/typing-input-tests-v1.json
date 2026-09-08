@@ -183,6 +183,24 @@
         {"type":"key","key":"i","receive_offset_ms":400}
       ],
       "expected": {"correct_types":4,"incorrect_types":0,"completed_problems":2,"current_problem_index":0,"current_input_position":0}
+    },
+    {
+      "id": "E011",
+      "description": "英文の半角スペースを必須入力として正誤タイプに数える",
+      "problems": ["Go now."],
+      "events": [
+        {"type":"key","key":"G","shift":true,"receive_offset_ms":100},
+        {"type":"key","key":"o","receive_offset_ms":200},
+        {"type":"key","key":"n","receive_offset_ms":300},
+        {"type":"key","key":"　","receive_offset_ms":400},
+        {"type":"key","key":" ","receive_offset_ms":500},
+        {"type":"key","key":" ","receive_offset_ms":600},
+        {"type":"key","key":"n","receive_offset_ms":700},
+        {"type":"key","key":"o","receive_offset_ms":800},
+        {"type":"key","key":"w","receive_offset_ms":900},
+        {"type":"key","key":".","receive_offset_ms":1000}
+      ],
+      "expected": {"correct_types":7,"incorrect_types":3,"completed_problems":1,"current_problem_index":0,"current_input_position":0}
     }
   ]
 }
