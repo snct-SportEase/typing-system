@@ -16,7 +16,8 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
 			data: z
 				.object({
 					matchNumber: z.number().int().min(1).max(3),
-					laneNumber: z.number().int().min(1).max(6)
+					laneNumber: z.number().int().min(1).max(6),
+					clientToken: z.uuid()
 				})
 				.strict()
 		})

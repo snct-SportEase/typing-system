@@ -103,6 +103,13 @@ export function createCompetitionManager() {
 					});
 					return true;
 				}
+				if (lane.webSocket && lane.clientToken !== message.data.clientToken) {
+					send(webSocket, {
+						type: 'system.error',
+						data: { code: 'lane_in_use' }
+					});
+					return true;
+				}
 
 				if (lane.webSocket && lane.webSocket !== webSocket) {
 					const replacedWebSocket = lane.webSocket;
@@ -115,6 +122,7 @@ export function createCompetitionManager() {
 				}
 				if (lane.webSocket !== webSocket && room.status === 'waiting') lane.ready = false;
 				lane.webSocket = webSocket;
+				lane.clientToken = message.data.clientToken;
 				lane.connected = true;
 				connections.set(webSocket, { role: 'player', room, lane });
 				send(webSocket, {
@@ -302,6 +310,7 @@ export function createCompetitionManager() {
 						connected: false,
 						ready: false,
 						webSocket: null,
+						clientToken: null,
 						persistedResult: persistedResults.get(assignment.laneNumber) ?? null,
 						inputTokens: inputBurstCapacity,
 						inputTokenUpdatedAt: Date.now(),
@@ -332,6 +341,7 @@ export function createCompetitionManager() {
 				connected: false,
 				ready: false,
 				webSocket: null,
+				clientToken: null,
 				persistedResult: null,
 				inputTokens: inputBurstCapacity,
 				inputTokenUpdatedAt: Date.now(),
@@ -367,6 +377,7 @@ export function createCompetitionManager() {
 
 		if (connection.lane.webSocket !== webSocket) return;
 		connection.lane.webSocket = null;
+		connection.lane.clientToken = null;
 		connection.lane.connected = false;
 		connection.lane.ready = false;
 		if (connection.room.status === 'countdown' && Date.now() < connection.room.startsAt) {

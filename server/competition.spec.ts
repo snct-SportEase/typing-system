@@ -40,7 +40,7 @@ class TestSocket {
 }
 
 describe('competition lane reconnection', () => {
-	it('revokes the replaced connection before accepting the new connection', () => {
+	it('rejects another terminal while allowing the owning terminal to reconnect', () => {
 		const temporaryDirectory = mkdtempSync(join(tmpdir(), 'typing-system-reconnect-test-'));
 		const databasePath = join(temporaryDirectory, 'test.db');
 		const previousDatabaseUrl = process.env.DATABASE_URL;
@@ -69,21 +69,44 @@ describe('competition lane reconnection', () => {
 
 		try {
 			const manager = createCompetitionManager();
-			const replaced = new TestSocket();
+			const owner = new TestSocket();
+			const attacker = new TestSocket();
 			const replacement = new TestSocket();
-			const join = { type: 'typing.join', data: { matchNumber: 1, laneNumber: 1 } };
+			const ownerJoin = {
+				type: 'typing.join',
+				data: {
+					matchNumber: 1,
+					laneNumber: 1,
+					clientToken: '00000000-0000-4000-8000-000000000001'
+				}
+			};
+			const attackerJoin = {
+				type: 'typing.join',
+				data: {
+					matchNumber: 1,
+					laneNumber: 1,
+					clientToken: '00000000-0000-4000-8000-000000000002'
+				}
+			};
 
-			manager.handle(replaced as unknown as WebSocket, join);
-			manager.handle(replaced as unknown as WebSocket, { type: 'typing.ready' });
-			manager.handle(replacement as unknown as WebSocket, join);
-			manager.handle(replaced as unknown as WebSocket, { type: 'typing.ready' });
+			manager.handle(owner as unknown as WebSocket, ownerJoin);
+			manager.handle(owner as unknown as WebSocket, { type: 'typing.ready' });
+			manager.handle(attacker as unknown as WebSocket, attackerJoin);
+
+			expect(attacker.messages.at(-1)).toEqual({
+				type: 'system.error',
+				data: { code: 'lane_in_use' }
+			});
+			expect(owner.closeCode).toBeUndefined();
+
+			manager.handle(replacement as unknown as WebSocket, ownerJoin);
 
 			const latestSnapshot = replacement.messages
 				.filter((message) => message.type === 'competition.snapshot')
 				.at(-1);
 			const lane = (latestSnapshot?.data.lanes as Array<{ ready: boolean }>)[0];
-			expect(replaced.closeCode).toBe(4001);
-			expect(replaced.closeReason).toBe('lane_reconnected');
+			expect(owner.closeCode).toBe(4001);
+			expect(owner.closeReason).toBe('lane_reconnected');
 			expect(lane.ready).toBe(false);
 
 			const admin = new TestSocket();

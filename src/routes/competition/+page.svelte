@@ -24,6 +24,8 @@
 	let stopped = false;
 	let shouldReconnect = false;
 	const terminalStorageKey = 'typing-system:competition-terminal';
+	const clientTokenStorageKey = 'typing-system:competition-client-token';
+	let clientToken = '';
 
 	let availableAssignments = $derived(
 		data.assignments.filter((candidate) => candidate.matchNumber === selectedMatch)
@@ -52,6 +54,7 @@
 
 	onMount(() => {
 		const clock = setInterval(() => (now = Date.now()), 100);
+		clientToken = getOrCreateClientToken();
 		const storedTerminal = readStoredTerminal();
 		if (
 			storedTerminal &&
@@ -108,7 +111,7 @@
 			socket.send(
 				JSON.stringify({
 					type: 'typing.join',
-					data: { matchNumber, laneNumber }
+					data: { matchNumber, laneNumber, clientToken }
 				})
 			);
 		});
@@ -124,10 +127,12 @@
 			if (message.type === 'system.error') {
 				connectionState = 'error';
 				errorMessage =
-					message.data.code === 'lane_reconnected'
-						? 'この出場クラスは別の端末で接続されました。'
-						: '競技端末を接続できませんでした。';
-				if (message.data.code === 'lane_reconnected') {
+					message.data.code === 'lane_in_use'
+						? 'この出場クラスは別の端末で使用中です。管理者に確認してください。'
+						: message.data.code === 'lane_reconnected'
+							? 'この出場クラスは別の端末で接続されました。'
+							: '競技端末を接続できませんでした。';
+				if (message.data.code === 'lane_reconnected' || message.data.code === 'lane_in_use') {
 					shouldReconnect = false;
 					writeStoredTerminal(false);
 					socket.close();
@@ -176,6 +181,19 @@
 			terminalStorageKey,
 			JSON.stringify({ matchNumber: selectedMatch, representativeSource, connected })
 		);
+	}
+
+	function getOrCreateClientToken() {
+		const stored = sessionStorage.getItem(clientTokenStorageKey);
+		if (
+			stored &&
+			/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(stored)
+		) {
+			return stored;
+		}
+		const created = crypto.randomUUID();
+		sessionStorage.setItem(clientTokenStorageKey, created);
+		return created;
 	}
 
 	function readStoredTerminal(): {
