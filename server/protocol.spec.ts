@@ -10,7 +10,14 @@ describe('realtime protocol', () => {
 			parseClientMessage({ type: 'monitor.subscribe', data: { matchNumber: 2 } }).success
 		).toBe(true);
 		expect(
-			parseClientMessage({ type: 'typing.join', data: { matchNumber: 1, laneNumber: 6 } }).success
+			parseClientMessage({
+				type: 'typing.join',
+				data: {
+					matchNumber: 1,
+					laneNumber: 6,
+					clientToken: '00000000-0000-4000-8000-000000000001'
+				}
+			}).success
 		).toBe(true);
 		expect(parseClientMessage({ type: 'typing.ready' }).success).toBe(true);
 		expect(
@@ -26,7 +33,11 @@ describe('realtime protocol', () => {
 		{},
 		{ type: 'system.ping', extra: true },
 		{ type: 'monitor.subscribe', data: { matchNumber: 4 } },
-		{ type: 'typing.join', data: { matchNumber: 1, laneNumber: 0 } },
+		{ type: 'typing.join', data: { matchNumber: 1, laneNumber: 6 } },
+		{
+			type: 'typing.join',
+			data: { matchNumber: 1, laneNumber: 6, clientToken: 'not-a-uuid' }
+		},
 		{ type: 'typing.input' },
 		{ type: 'typing.input', data: { key: 'a', injected: true } }
 	])('rejects an unsupported payload: %j', (payload) => {
