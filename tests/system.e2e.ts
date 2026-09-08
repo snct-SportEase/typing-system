@@ -182,7 +182,10 @@ test('survives a malformed WebSocket text frame', async ({ request }) => {
 	expect(health.ok()).toBe(true);
 });
 
-test('requires a replacement terminal to become ready again', async ({ browser, page: first }) => {
+test('rejects a different terminal from taking an occupied class', async ({
+	browser,
+	page: first
+}) => {
 	clearCompetitionResults();
 	const replacementContext = await browser.newContext();
 	try {
@@ -196,9 +199,11 @@ test('requires a replacement terminal to become ready again', async ({ browser, 
 		await replacement.goto('/competition');
 		await replacement.getByLabel('出場クラス').selectOption('1-1');
 		await replacement.getByRole('button', { name: '端末を接続' }).click();
-		await expect(replacement.getByText('接続済み', { exact: true })).toBeVisible();
-		await expect(replacement.getByRole('button', { name: '準備完了' })).toBeVisible();
-		await expect(first.getByText('この出場クラスは別の端末で接続されました。')).toBeVisible();
+		await expect(
+			replacement.getByText('この出場クラスは別の端末で使用中です。管理者に確認してください。')
+		).toBeVisible();
+		await expect(replacement.getByRole('button', { name: '準備完了' })).toHaveCount(0);
+		await expect(first.getByText('全員の準備を待っています')).toBeVisible();
 	} finally {
 		await replacementContext.close();
 	}
