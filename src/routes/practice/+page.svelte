@@ -172,7 +172,7 @@
 					disabled={status === 'running' || practiceMode === 'c'}
 					onchange={changePreset}
 				>
-					{#each practicePresets as preset}
+					{#each practicePresets as preset (preset.id)}
 						<option value={preset.id}>{preset.category}：{preset.title}</option>
 					{/each}
 				</select>
