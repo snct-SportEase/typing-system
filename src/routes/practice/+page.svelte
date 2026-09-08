@@ -174,23 +174,44 @@
 		</header>
 
 		<div class="practice-stage">
-			<p class="problem-counter">問題 {view.problemIndex + 1} / {view.problemCount}</p>
-			<p class="problem-text" class:is-code={practiceMode === 'c'}>{view.displayText}</p>
-			{#if practiceMode === 'typing'}<p class="problem-reading">{view.reading}</p>{/if}
-			<p class="romanized-input" class:is-code={practiceMode === 'c'}>
-				<span>{inputGuideText().slice(0, inputGuidePosition())}</span>{inputGuideText().slice(
-					inputGuidePosition()
-				)}
-			</p>
+			{#if status === 'finished'}
+				<div class="practice-result-panel" role="status">
+					<p class="eyebrow">RESULT</p>
+					<h2>練習結果</h2>
+					<strong>{view.completedProblems}<small>問完了</small></strong>
+					<dl>
+						<div>
+							<dt>正タイプ</dt>
+							<dd>{view.correctTypes}</dd>
+						</div>
+						<div>
+							<dt>ミス</dt>
+							<dd>{view.incorrectTypes}</dd>
+						</div>
+						<div>
+							<dt>入力速度</dt>
+							<dd>{wpm().toFixed(1)} WPM</dd>
+						</div>
+						<div>
+							<dt>正確率</dt>
+							<dd>{(accuracy() * 100).toFixed(1)}%</dd>
+						</div>
+					</dl>
+				</div>
+			{:else}
+				<p class="problem-counter">問題 {view.problemIndex + 1} / {view.problemCount}</p>
+				<p class="problem-text" class:is-code={practiceMode === 'c'}>{view.displayText}</p>
+				{#if practiceMode === 'typing'}<p class="problem-reading">{view.reading}</p>{/if}
+				<p class="romanized-input" class:is-code={practiceMode === 'c'}>
+					<span>{inputGuideText().slice(0, inputGuidePosition())}</span>{inputGuideText().slice(
+						inputGuidePosition()
+					)}
+				</p>
+			{/if}
 		</div>
 
 		{#if status === 'idle'}
 			<p class="practice-overlay">「練習を開始」を押してください</p>
-		{:else if status === 'finished'}
-			<div class="practice-summary" role="status">
-				<strong>練習終了</strong>
-				<span>{view.completedProblems}問完了・{wpm().toFixed(1)} WPM</span>
-			</div>
 		{/if}
 
 		<dl class="typing-metrics">

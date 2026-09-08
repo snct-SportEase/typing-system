@@ -164,6 +164,20 @@ test('practices with the competition typing rules without joining a match', asyn
 	expect(await page.locator('.romanized-input span').textContent()).toBe('    i');
 });
 
+test('shows the practice result when the 180-second timer expires', async ({ page }) => {
+	await page.clock.install({ time: new Date('2026-09-09T00:00:00Z') });
+	await page.goto('/practice');
+	await page.getByRole('button', { name: '練習を開始' }).click();
+	await page.getByLabel('練習入力').press('a');
+
+	await page.clock.fastForward(180_000);
+
+	await expect(page.getByText('0:00', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: '練習結果' })).toBeVisible();
+	await expect(page.getByRole('status')).toContainText(/正タイプ\s+1/);
+	await expect(page.getByRole('button', { name: 'もう一度練習' })).toBeVisible();
+});
+
 test('rejects unauthenticated admin WebSocket subscriptions', async () => {
 	const { webSocket, result, closed } = subscribeToAdminStatus();
 	try {

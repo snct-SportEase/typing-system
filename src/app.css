@@ -1311,8 +1311,7 @@ select {
 	text-align: center;
 }
 
-.practice-overlay,
-.practice-summary {
+.practice-overlay {
 	display: grid;
 	justify-items: center;
 	gap: 4px;
@@ -1323,13 +1322,61 @@ select {
 	border-top: 1px solid #d9dedb;
 }
 
-.practice-summary strong {
-	font-size: 1.1rem;
-}
-
-.practice-summary span,
 .practice-overlay {
 	color: #59635e;
+}
+
+.practice-result-panel {
+	display: grid;
+	justify-items: center;
+	gap: 8px;
+	width: min(100%, 620px);
+	margin: auto;
+}
+
+.practice-result-panel h2 {
+	margin: 0;
+	font-size: 1.5rem;
+}
+
+.practice-result-panel > strong {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 3rem;
+	line-height: 1;
+	color: #167347;
+}
+
+.practice-result-panel > strong small {
+	margin-left: 6px;
+	font-family: inherit;
+	font-size: 0.85rem;
+	color: #59635e;
+}
+
+.practice-result-panel dl {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(100px, 1fr));
+	gap: 1px;
+	width: 100%;
+	margin: 16px 0 0;
+	background: #d9dedb;
+	border: 1px solid #d9dedb;
+}
+
+.practice-result-panel dl div {
+	padding: 12px;
+	background: #fff;
+}
+
+.practice-result-panel dt {
+	font-size: 0.72rem;
+	color: #66706b;
+}
+
+.practice-result-panel dd {
+	margin: 5px 0 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-weight: 750;
 }
 
 .terminal-setup {
@@ -1823,6 +1870,10 @@ select {
 	.practice-stage {
 		min-height: 290px;
 		padding: 30px 18px;
+	}
+
+	.practice-result-panel dl {
+		grid-template-columns: repeat(2, 1fr);
 	}
 
 	.terminal-setup {
