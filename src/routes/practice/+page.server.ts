@@ -30,6 +30,6 @@ export const load: PageServerLoad = () => {
 			'    printf("score: %d\\n", score);',
 			'    return 0;',
 			'}'
-		].map((source) => ({ displayText: source, reading: source }))
+		].map((source) => ({ displayText: source, reading: source.replaceAll(' ', '') }))
 	};
 };

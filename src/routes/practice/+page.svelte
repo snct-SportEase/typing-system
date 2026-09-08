@@ -51,6 +51,7 @@
 	function handleKeydown(event: KeyboardEvent) {
 		if (status !== 'running') return;
 		event.preventDefault();
+		if (practiceMode === 'c' && event.key === ' ') return;
 		const receivedAt = Date.now();
 		const result = applyTypingEvent(
 			typingState,

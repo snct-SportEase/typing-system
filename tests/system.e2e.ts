@@ -152,8 +152,13 @@ test('practices with the competition typing rules without joining a match', asyn
 	await page.getByLabel('練習モード').selectOption('c');
 	await expect(page.locator('.problem-text')).toHaveText('#include <stdio.h>');
 	await page.getByRole('button', { name: '練習を開始' }).click();
-	await page.getByLabel('練習入力').pressSequentially('#');
-	await expect(page.locator('.romanized-input span')).toHaveText('#');
+	const codeInput = page.getByLabel('練習入力');
+	await codeInput.press('Space');
+	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('0');
+	await codeInput.pressSequentially('#include<stdio.h>intmain(void){');
+	await expect(page.locator('.problem-text')).toHaveText('    int score = 100;');
+	await codeInput.pressSequentially('i');
+	await expect(page.locator('.romanized-input span')).toHaveText('i');
 });
 
 test('rejects unauthenticated admin WebSocket subscriptions', async () => {
