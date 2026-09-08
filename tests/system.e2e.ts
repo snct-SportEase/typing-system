@@ -149,7 +149,8 @@ test('practices with the competition typing rules without joining a match', asyn
 	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('1');
 
 	await page.getByRole('button', { name: '練習を停止' }).click();
-	await expect(page.getByRole('status')).toContainText('練習終了');
+	await expect(page.getByText('練習終了', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: '練習結果' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'もう一度練習' })).toBeVisible();
 	await page.getByLabel('練習モード').selectOption('c');
 	await expect(page.locator('.problem-text')).toHaveText('#include <stdio.h>');
