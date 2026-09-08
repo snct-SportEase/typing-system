@@ -134,7 +134,7 @@ test('practices with the competition typing rules without joining a match', asyn
 	await expect(page.getByRole('navigation', { name: 'メインナビゲーション' })).toContainText(
 		'練習'
 	);
-	await expect(page.getByText('1:00', { exact: true })).toBeVisible();
+	await expect(page.getByText('3:00', { exact: true })).toBeVisible();
 
 	await page.getByRole('button', { name: '練習を開始' }).click();
 	await expect(page.getByText('練習中', { exact: true })).toBeVisible();
@@ -147,6 +147,13 @@ test('practices with the competition typing rules without joining a match', asyn
 
 	await input.press('x');
 	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('1');
+
+	await page.reload();
+	await page.getByLabel('練習モード').selectOption('c');
+	await expect(page.locator('.problem-text')).toHaveText('#include <stdio.h>');
+	await page.getByRole('button', { name: '練習を開始' }).click();
+	await page.getByLabel('練習入力').pressSequentially('#');
+	await expect(page.locator('.romanized-input span')).toHaveText('#');
 });
 
 test('rejects unauthenticated admin WebSocket subscriptions', async () => {
