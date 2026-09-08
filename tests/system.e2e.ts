@@ -415,6 +415,8 @@ test('synchronizes six competition terminals with monitoring', async ({ browser 
 	admin.on('dialog', (dialog) => dialog.accept());
 	await firstMatchControl.getByRole('button', { name: '一括開始' }).click();
 	await expect(admin.getByRole('status')).toHaveText('第1試合を開始しました。');
+	await expect(terminals[0].getByText('3', { exact: true })).toBeVisible();
+	await expect(terminals[0].getByText('2', { exact: true })).toBeVisible({ timeout: 2_000 });
 	const lockedAssignmentResult = await admin.evaluate(
 		async (assignments) => {
 			const response = await fetch('/admin?/saveAssignments', {
