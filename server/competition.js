@@ -19,6 +19,7 @@ import {
 	removeResultSubscriber
 } from './result-notifications.js';
 import { applyTypingEvent, createTypingState, getTypingView } from './typing-engine.js';
+import { calculateRawScore } from '../src/lib/competition/scoring.js';
 
 /**
  * @typedef {{ problem_id: string, display_text: string, reading: string }} ProblemPresetEntry
@@ -920,7 +921,7 @@ function createLaneSnapshot(room, lane, now) {
 	const attempts = view.correctTypes + view.incorrectTypes;
 	const accuracy = attempts === 0 ? 0 : view.correctTypes / attempts;
 	const wpm = elapsedSeconds === 0 ? 0 : (view.correctTypes / elapsedSeconds) * 60;
-	const rawScore = calculateRawScore(view.correctTypes, view.incorrectTypes);
+	const rawScore = calculateRawScore(view.correctTypes, view.incorrectTypes, durationSeconds);
 	const score = Math.floor(rawScore);
 	const currentLength = Math.max(view.romanizedText.length, 1);
 	const progress =
@@ -944,12 +945,6 @@ function createLaneSnapshot(room, lane, now) {
 }
 
 /** @param {number} correctTypes @param {number} incorrectTypes */
-function calculateRawScore(correctTypes, incorrectTypes) {
-	const attempts = correctTypes + incorrectTypes;
-	if (attempts === 0) return 0;
-	return (60 * correctTypes ** 4) / (durationSeconds * attempts ** 3);
-}
-
 /** @param {any} lane @param {number} now */
 function consumeInputAllowance(lane, now) {
 	const elapsedSeconds = Math.max(0, now - lane.inputTokenUpdatedAt) / 1_000;

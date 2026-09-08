@@ -5,6 +5,7 @@
 		createTypingState,
 		getTypingView
 	} from '$lib/competition/typing-engine.js';
+	import { calculateScore } from '$lib/competition/scoring.js';
 	import { onMount, tick, untrack } from 'svelte';
 
 	let { data } = $props();
@@ -98,6 +99,10 @@
 		return total === 0 ? 1 : view.correctTypes / total;
 	}
 
+	function score() {
+		return calculateScore(view.correctTypes, view.incorrectTypes, durationSeconds);
+	}
+
 	function formatTime(seconds: number) {
 		return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 	}
@@ -180,6 +185,10 @@
 					<h2>練習結果</h2>
 					<strong>{view.completedProblems}<small>問完了</small></strong>
 					<dl>
+						<div>
+							<dt>スコア</dt>
+							<dd>{score()}</dd>
+						</div>
 						<div>
 							<dt>正タイプ</dt>
 							<dd>{view.correctTypes}</dd>

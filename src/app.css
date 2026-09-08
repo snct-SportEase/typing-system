@@ -1355,7 +1355,7 @@ select {
 
 .practice-result-panel dl {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(100px, 1fr));
+	grid-template-columns: repeat(5, minmax(100px, 1fr));
 	gap: 1px;
 	width: 100%;
 	margin: 16px 0 0;
