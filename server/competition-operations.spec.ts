@@ -7,7 +7,8 @@ import {
 	invalidateMatch,
 	prepareRetry,
 	recordAttemptStarted,
-	recordStoppedAttempt
+	recordStoppedAttempt,
+	resetMatchResults
 } from './competition-operations.js';
 
 let database: Database.Database | undefined;
@@ -100,6 +101,66 @@ describe('competition operations', () => {
 				.prepare('select lane_number as laneNumber, reason from match_disqualifications')
 				.get()
 		).toEqual({ laneNumber: 3, reason: '規定違反' });
+	});
+
+	it('resets published results while retaining the completed attempt history', () => {
+		database = createDatabase();
+		recordAttemptStarted(
+			database,
+			{
+				matchNumber: 1,
+				attemptNumber: 1,
+				problemSetId: 'typing-main-01',
+				problemSetVersion: 1,
+				startsAt: 1_000
+			},
+			'admin',
+			900
+		);
+		recordStoppedAttempt(
+			database,
+			snapshot(),
+			1,
+			'force_finished',
+			'running',
+			'admin',
+			'終了',
+			2_000
+		);
+		database
+			.prepare(
+				`insert into match_results values
+				 (1, 1, '1年生', 'IS1', 100, 1, 1, 80, 0.98, 70.5, 70, 1,
+				  'typing-main-01', 1, 2000)`
+			)
+			.run();
+		database.prepare("insert into match_confirmations values (1, 2100, 'admin')").run();
+		database
+			.prepare("insert into match_disqualifications values (1, 1, '違反', 2100, 'admin')")
+			.run();
+
+		expect(
+			resetMatchResults(
+				database,
+				1,
+				{ problemSetId: 'typing-main-01', problemSetVersion: 1 },
+				'admin',
+				'計測をやり直す',
+				2_200
+			)
+		).toEqual({ reset: true, attemptNumber: 2 });
+		expect(database.prepare('select count(*) from match_results').pluck().get()).toBe(0);
+		expect(database.prepare('select count(*) from match_confirmations').pluck().get()).toBe(0);
+		expect(database.prepare('select count(*) from match_disqualifications').pluck().get()).toBe(0);
+		expect(database.prepare('select count(*) from match_attempt_results').pluck().get()).toBe(2);
+		expect(getLatestAttempt(database, 1)).toMatchObject({
+			attemptNumber: 2,
+			problemSetId: 'typing-main-01',
+			status: 'retry_waiting'
+		});
+		expect(
+			database.prepare('select action from match_operations order by id desc').pluck().get()
+		).toBe('reset');
 	});
 });
 

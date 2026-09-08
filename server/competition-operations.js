@@ -202,6 +202,66 @@ export function prepareRetry(
 }
 
 /**
+ * Clears the published result while retaining the previous attempt as audit history.
+ * @param {import('better-sqlite3').Database} database
+ * @param {number} matchNumber
+ * @param {{ problemSetId: string, problemSetVersion: number }} preset
+ * @param {string} operatedBy
+ * @param {string} reason
+ * @param {number} operatedAt
+ */
+export function resetMatchResults(
+	database,
+	matchNumber,
+	preset,
+	operatedBy,
+	reason,
+	operatedAt = Date.now()
+) {
+	return database.transaction(() => {
+		let latest = getLatestAttempt(database, matchNumber);
+		if (!latest) latest = createLegacyAttempt(database, matchNumber, operatedAt);
+		if (!latest) return { reset: false, reason: 'attempt_not_found' };
+		if (latest.status === 'running') return { reset: false, reason: 'invalid_status' };
+
+		copyCurrentResultsToHistory(database, matchNumber, latest.attemptNumber, operatedAt);
+		database.prepare('delete from match_confirmations where match_number = ?').run(matchNumber);
+		database.prepare('delete from match_disqualifications where match_number = ?').run(matchNumber);
+		database.prepare('delete from match_results where match_number = ?').run(matchNumber);
+
+		const attemptNumber = latest.attemptNumber + 1;
+		database
+			.prepare(
+				`insert into match_attempts (
+				 match_number, attempt_number, problem_set_id, problem_set_version,
+				 status, created_at, updated_at, reason, operated_by
+				) values (?, ?, ?, ?, 'retry_waiting', ?, ?, ?, ?)`
+			)
+			.run(
+				matchNumber,
+				attemptNumber,
+				preset.problemSetId,
+				preset.problemSetVersion,
+				operatedAt,
+				operatedAt,
+				reason,
+				operatedBy
+			);
+		insertOperation(database, {
+			matchNumber,
+			attemptNumber,
+			action: 'reset',
+			statusBefore: latest.status,
+			statusAfter: 'retry_waiting',
+			reason,
+			operatedAt,
+			operatedBy
+		});
+		return { reset: true, attemptNumber };
+	})();
+}
+
+/**
  * @param {import('better-sqlite3').Database} database
  * @param {number} matchNumber
  * @param {number} laneNumber
