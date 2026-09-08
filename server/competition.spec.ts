@@ -118,7 +118,7 @@ describe('competition lane reconnection', () => {
 		}
 	});
 
-	it('drops typing bursts beyond the per-lane allowance', () => {
+	it('waits for an admin start and a three-second countdown before accepting input', () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
 		const temporaryDirectory = mkdtempSync(join(tmpdir(), 'typing-system-rate-limit-test-'));
@@ -163,19 +163,38 @@ describe('competition lane reconnection', () => {
 				});
 				manager.handle(players[lane - 1] as unknown as WebSocket, { type: 'typing.ready' });
 			}
-			expect(manager.start(1, 'test')).toEqual({ started: true });
-			vi.advanceTimersByTime(3_000);
-
-			for (const key of 'aozora') {
+			const latestStatus = () =>
+				players[0].messages.filter((message) => message.type === 'competition.snapshot').at(-1)
+					?.data.status;
+			const type = (key: string) =>
 				manager.handle(players[0] as unknown as WebSocket, {
 					type: 'typing.input',
 					data: { key }
 				});
+			const acceptedInputs = () =>
+				players[0].messages.filter((message) => message.type === 'typing.input-result');
+
+			expect(latestStatus()).toBe('waiting');
+			type('a');
+			expect(acceptedInputs()).toHaveLength(0);
+
+			expect(manager.start(1, 'test')).toEqual({ started: true });
+			expect(latestStatus()).toBe('countdown');
+			type('a');
+			expect(acceptedInputs()).toHaveLength(0);
+
+			vi.advanceTimersByTime(2_999);
+			expect(latestStatus()).toBe('countdown');
+			type('a');
+			expect(acceptedInputs()).toHaveLength(0);
+
+			vi.advanceTimersByTime(1);
+			expect(latestStatus()).toBe('running');
+
+			for (const key of 'aozora') {
+				type(key);
 			}
-			const acceptedInputs = players[0].messages.filter(
-				(message) => message.type === 'typing.input-result'
-			);
-			expect(acceptedInputs).toHaveLength(3);
+			expect(acceptedInputs()).toHaveLength(3);
 		} finally {
 			vi.useRealTimers();
 			if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
