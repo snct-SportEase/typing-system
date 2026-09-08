@@ -6,18 +6,20 @@
 		getTypingView
 	} from '$lib/competition/typing-engine.js';
 	import { calculateScore } from '$lib/competition/scoring.js';
+	import { shuffleProblems } from '$lib/practice/shuffle.js';
 	import { onMount, tick, untrack } from 'svelte';
 
 	let { data } = $props();
 	const durationSeconds = 180;
-	const practiceProblems = untrack(() => data.problems);
+	const practicePresets = untrack(() => data.presets);
 	const codeProblems = untrack(() => data.codeProblems);
 	let practiceMode = $state<'typing' | 'c'>('typing');
+	let selectedPresetId = $state(practicePresets[0].id);
 	let status = $state<'idle' | 'running' | 'finished'>('idle');
 	let now = $state(Date.now());
 	let startsAt = $state(0);
 	let endsAt = $state(0);
-	let typingState = createTypingState(practiceProblems);
+	let typingState = createTypingState(practicePresets[0].problems);
 	let view = $state(getTypingView(typingState));
 	let lastInputCorrect = $state<boolean | null>(null);
 	let typingSurface = $state<HTMLInputElement>();
@@ -31,7 +33,9 @@
 	});
 
 	function startPractice() {
-		typingState = createTypingState(practiceMode === 'c' ? codeProblems : practiceProblems);
+		const problems =
+			practiceMode === 'c' ? codeProblems : shuffleProblems(selectedPreset().problems);
+		typingState = createTypingState(problems);
 		view = getTypingView(typingState);
 		lastInputCorrect = null;
 		startsAt = Date.now();
@@ -49,7 +53,22 @@
 
 	function changePracticeMode(event: Event & { currentTarget: HTMLSelectElement }) {
 		practiceMode = event.currentTarget.value as 'typing' | 'c';
-		typingState = createTypingState(practiceMode === 'c' ? codeProblems : practiceProblems);
+		resetProblems();
+	}
+
+	function changePreset(event: Event & { currentTarget: HTMLSelectElement }) {
+		selectedPresetId = event.currentTarget.value;
+		resetProblems();
+	}
+
+	function selectedPreset() {
+		return practicePresets.find((preset) => preset.id === selectedPresetId) ?? practicePresets[0];
+	}
+
+	function resetProblems() {
+		typingState = createTypingState(
+			practiceMode === 'c' ? codeProblems : selectedPreset().problems
+		);
 		view = getTypingView(typingState);
 		lastInputCorrect = null;
 		status = 'idle';
@@ -143,6 +162,19 @@
 				<select value={practiceMode} disabled={status === 'running'} onchange={changePracticeMode}>
 					<option value="typing">タイピング</option>
 					<option value="c">C言語写経</option>
+				</select>
+			</label>
+			<label>
+				<span>問題プリセット</span>
+				<select
+					aria-label="問題プリセット"
+					value={selectedPresetId}
+					disabled={status === 'running' || practiceMode === 'c'}
+					onchange={changePreset}
+				>
+					{#each practicePresets as preset}
+						<option value={preset.id}>{preset.category}：{preset.title}</option>
+					{/each}
 				</select>
 			</label>
 			{#if status === 'running'}

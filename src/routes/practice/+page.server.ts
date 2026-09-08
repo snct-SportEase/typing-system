@@ -3,23 +3,32 @@ import specification from '../../../docs/typing-problem-presets-v1.json' with { 
 import type { PageServerLoad } from './$types';
 
 type ProblemPreset = {
+	problem_set_id: string;
+	title: string;
 	role: string;
 	match_number?: number;
+	reserve_priority?: number;
 	problems: Array<{ display_text: string; reading: string }>;
 };
 
 export const load: PageServerLoad = () => {
 	if (!env.TOURNAMENT_NAME) throw new Error('TOURNAMENT_NAME is not set');
-	const preset = (specification.presets as ProblemPreset[]).find(
-		(candidate) => candidate.role === 'main' && candidate.match_number === 1
-	);
-	if (!preset) throw new Error('Practice problem preset was not found');
+	const presets = specification.presets as ProblemPreset[];
+	if (presets.length === 0) throw new Error('Practice problem presets were not found');
 
 	return {
 		tournamentName: env.TOURNAMENT_NAME,
-		problems: preset.problems.map((problem) => ({
-			displayText: problem.display_text,
-			reading: problem.reading
+		presets: presets.map((preset) => ({
+			id: preset.problem_set_id,
+			title: preset.title,
+			category:
+				preset.role === 'main'
+					? `本戦 第${preset.match_number}試合`
+					: `予備 第${preset.reserve_priority}候補`,
+			problems: preset.problems.map((problem) => ({
+				displayText: problem.display_text,
+				reading: problem.reading
+			}))
 		})),
 		codeProblems: [
 			'#include <stdio.h>',

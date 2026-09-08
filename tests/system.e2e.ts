@@ -135,17 +135,23 @@ test('practices with the competition typing rules without joining a match', asyn
 		'練習'
 	);
 	await expect(page.getByText('3:00', { exact: true })).toBeVisible();
+	const presetSelect = page.getByLabel('問題プリセット');
+	await expect(presetSelect.locator('option')).toHaveCount(10);
+	await presetSelect.selectOption('typing-main-02');
+	await expect(page.locator('.problem-text')).toHaveText('端末');
 
 	await page.getByRole('button', { name: '練習を開始' }).click();
 	await expect(page.getByText('練習中', { exact: true })).toBeVisible();
 	const input = page.getByLabel('練習入力');
-	await input.press('a');
-	await expect(page.locator('.romanized-input span')).toHaveText('a');
+	const firstKey = (await page.locator('.romanized-input').textContent())?.[0];
+	expect(firstKey).toBeTruthy();
+	await input.press(firstKey!);
+	await expect(page.locator('.romanized-input span')).toHaveText(firstKey!);
 	await expect(page.locator('.typing-metrics div').filter({ hasText: '正タイプ' })).toContainText(
 		'1'
 	);
 
-	await input.press('x');
+	await input.press(firstKey === 'x' ? 'q' : 'x');
 	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('1');
 
 	await page.getByRole('button', { name: '練習を停止' }).click();
@@ -169,7 +175,9 @@ test('shows the practice result when the 180-second timer expires', async ({ pag
 	await page.clock.install({ time: new Date('2026-09-09T00:00:00Z') });
 	await page.goto('/practice');
 	await page.getByRole('button', { name: '練習を開始' }).click();
-	await page.getByLabel('練習入力').pressSequentially('aozo');
+	const firstFourKeys = (await page.locator('.romanized-input').textContent())?.slice(0, 4);
+	expect(firstFourKeys).toHaveLength(4);
+	await page.getByLabel('練習入力').pressSequentially(firstFourKeys!);
 
 	await page.clock.fastForward(180_000);
 
