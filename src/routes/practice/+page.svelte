@@ -101,6 +101,21 @@
 	function formatTime(seconds: number) {
 		return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 	}
+
+	function inputGuideText() {
+		return practiceMode === 'c' ? view.displayText : view.romanizedText;
+	}
+
+	function inputGuidePosition() {
+		if (practiceMode !== 'c') return view.inputPosition;
+		let sourceIndex = 0;
+		let inputIndex = 0;
+		while (sourceIndex < view.displayText.length && inputIndex < view.inputPosition) {
+			if (view.displayText[sourceIndex] !== ' ') inputIndex += 1;
+			sourceIndex += 1;
+		}
+		return sourceIndex;
+	}
 </script>
 
 <svelte:head>
@@ -162,9 +177,9 @@
 			<p class="problem-counter">問題 {view.problemIndex + 1} / {view.problemCount}</p>
 			<p class="problem-text" class:is-code={practiceMode === 'c'}>{view.displayText}</p>
 			{#if practiceMode === 'typing'}<p class="problem-reading">{view.reading}</p>{/if}
-			<p class="romanized-input">
-				<span>{view.romanizedText.slice(0, view.inputPosition)}</span>{view.romanizedText.slice(
-					view.inputPosition
+			<p class="romanized-input" class:is-code={practiceMode === 'c'}>
+				<span>{inputGuideText().slice(0, inputGuidePosition())}</span>{inputGuideText().slice(
+					inputGuidePosition()
 				)}
 			</p>
 		</div>

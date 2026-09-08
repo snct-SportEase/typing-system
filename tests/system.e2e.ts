@@ -159,8 +159,9 @@ test('practices with the competition typing rules without joining a match', asyn
 	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('0');
 	await codeInput.pressSequentially('#include<stdio.h>intmain(void){');
 	await expect(page.locator('.problem-text')).toHaveText('    int score = 100;');
+	expect(await page.locator('.romanized-input').textContent()).toBe('    int score = 100;');
 	await codeInput.pressSequentially('i');
-	await expect(page.locator('.romanized-input span')).toHaveText('i');
+	expect(await page.locator('.romanized-input span').textContent()).toBe('    i');
 });
 
 test('rejects unauthenticated admin WebSocket subscriptions', async () => {
