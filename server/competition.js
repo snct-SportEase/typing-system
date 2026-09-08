@@ -20,6 +20,7 @@ import {
 } from './result-notifications.js';
 import { applyTypingEvent, createTypingState, getTypingView } from './typing-engine.js';
 import { calculateRawScore } from '../src/lib/competition/scoring.js';
+import { shuffleProblems } from '../src/lib/practice/shuffle.js';
 
 /**
  * @typedef {{ problem_id: string, display_text: string, reading: string }} ProblemPresetEntry
@@ -50,7 +51,13 @@ const reservePresets = problemPresets.presets
 	.sort((left, right) => (left.reserve_priority ?? 0) - (right.reserve_priority ?? 0));
 const allPresets = new Map(problemPresets.presets.map((preset) => [preset.problem_set_id, preset]));
 
-export function createCompetitionManager() {
+/** @param {{ random?: () => number }} [options] */
+export function createCompetitionManager(options = {}) {
+	const random = options.random ?? Math.random;
+	const assignedMainPresets = new Map(
+		shuffleProblems([...mainPresets.values()], random).map((preset, index) => [index + 1, preset])
+	);
+	const randomizedReservePresets = shuffleProblems(reservePresets, random);
 	const rooms = new Map();
 	const connections = new WeakMap();
 	const adminSubscribers = new Set();
@@ -201,7 +208,7 @@ export function createCompetitionManager() {
 					if (room && (room.status === 'countdown' || room.status === 'running')) {
 						return { completed: false, reason: 'invalid_status' };
 					}
-					const preset = mainPresets.get(operation.matchNumber);
+					const preset = assignedMainPresets.get(operation.matchNumber);
 					if (!preset) return { completed: false, reason: 'problem_set_not_found' };
 					const result = resetMatchResults(
 						database,
@@ -213,7 +220,7 @@ export function createCompetitionManager() {
 					if (!result.reset || result.attemptNumber === undefined) {
 						return { completed: false, reason: result.reason };
 					}
-					if (room) resetRoom(room, preset, result.attemptNumber);
+					if (room) resetRoom(room, preset, result.attemptNumber, random);
 					publishResultNotification({
 						type: 'competition.retry-prepared',
 						data: { matchNumber: operation.matchNumber }
@@ -245,7 +252,7 @@ export function createCompetitionManager() {
 
 				if (operation.action === 'retry') {
 					const usedProblemSetIds = new Set(getUsedProblemSetIds(database));
-					const preset = reservePresets.find(
+					const preset = randomizedReservePresets.find(
 						(candidate) => !usedProblemSetIds.has(candidate.problem_set_id)
 					);
 					if (!preset) return { completed: false, reason: 'reserve_exhausted' };
@@ -259,7 +266,7 @@ export function createCompetitionManager() {
 					if (!result.prepared || result.attemptNumber === undefined) {
 						return { completed: false, reason: result.reason };
 					}
-					if (room) resetRoom(room, preset, result.attemptNumber);
+					if (room) resetRoom(room, preset, result.attemptNumber, random);
 					publishResultNotification({
 						type: 'competition.retry-prepared',
 						data: { matchNumber: operation.matchNumber }
@@ -308,12 +315,15 @@ export function createCompetitionManager() {
 		const latestAttempt = readLatestAttempt(matchNumber);
 		const preset = latestAttempt
 			? allPresets.get(latestAttempt.problemSetId)
-			: mainPresets.get(matchNumber);
+			: assignedMainPresets.get(matchNumber);
 		if (!preset) throw new Error(`Problem preset for match ${matchNumber} was not found`);
-		const problems = preset.problems.map((problem) => ({
-			displayText: problem.display_text,
-			reading: problem.reading
-		}));
+		const problems = shuffleProblems(
+			preset.problems.map((problem) => ({
+				displayText: problem.display_text,
+				reading: problem.reading
+			})),
+			random
+		);
 		const assignments = loadAssignments(matchNumber);
 		const persistedResults = new Map(
 			latestAttempt && ['finished', 'confirmed'].includes(latestAttempt.status)
@@ -427,14 +437,14 @@ export function createCompetitionManager() {
 	function sendAdminStatus(webSocket) {
 		const now = Date.now();
 		if (!cachedAdminStatusMessage || now >= cachedAdminStatusUntil) {
-			cachedAdminStatusMessage = createAdminStatusMessage(rooms);
+			cachedAdminStatusMessage = createAdminStatusMessage(rooms, assignedMainPresets);
 			cachedAdminStatusUntil = now + 1_000;
 		}
 		send(webSocket, cachedAdminStatusMessage);
 	}
 
 	function broadcastAdminStatus() {
-		const message = createAdminStatusMessage(rooms);
+		const message = createAdminStatusMessage(rooms, assignedMainPresets);
 		cachedAdminStatusMessage = message;
 		cachedAdminStatusUntil = Date.now() + 1_000;
 		for (const subscriber of adminSubscribers) send(subscriber, message);
@@ -475,8 +485,8 @@ function startRoom(room, operatedBy) {
 	return { started: true };
 }
 
-/** @param {Map<number, any>} rooms */
-function createAdminStatusMessage(rooms) {
+/** @param {Map<number, any>} rooms @param {Map<number, ProblemPreset>} assignedMainPresets */
+function createAdminStatusMessage(rooms, assignedMainPresets) {
 	return {
 		type: 'competition.admin-status',
 		data: {
@@ -490,7 +500,7 @@ function createAdminStatusMessage(rooms) {
 					problemSetId:
 						room?.problemSetId ??
 						latestAttempt?.problemSetId ??
-						mainPresets.get(matchNumber)?.problem_set_id ??
+						assignedMainPresets.get(matchNumber)?.problem_set_id ??
 						'',
 					status: room?.status ?? restoredRoomStatus(latestAttempt?.status),
 					connectedCount: lanes.filter((lane) => lane.connected).length,
@@ -563,13 +573,16 @@ function setRoomTerminalStatus(room, status) {
 	room.notifyAdmin();
 }
 
-/** @param {any} room @param {ProblemPreset} preset @param {number} attemptNumber */
-function resetRoom(room, preset, attemptNumber) {
+/** @param {any} room @param {ProblemPreset} preset @param {number} attemptNumber @param {() => number} random */
+function resetRoom(room, preset, attemptNumber, random) {
 	stopTicker(room);
-	const problems = preset.problems.map((problem) => ({
-		displayText: problem.display_text,
-		reading: problem.reading
-	}));
+	const problems = shuffleProblems(
+		preset.problems.map((problem) => ({
+			displayText: problem.display_text,
+			reading: problem.reading
+		})),
+		random
+	);
 	room.attemptNumber = attemptNumber;
 	room.problemSetId = preset.problem_set_id;
 	room.problemSetVersion = preset.version;

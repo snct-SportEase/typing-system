@@ -226,6 +226,61 @@ describe('competition lane reconnection', () => {
 		}
 	});
 
+	it('試合ごとに異なるプリセットを選び、6レーンへ同じランダム順を配信する', () => {
+		const temporaryDirectory = mkdtempSync(join(tmpdir(), 'typing-system-random-preset-test-'));
+		const databasePath = join(temporaryDirectory, 'test.db');
+		const previousDatabaseUrl = process.env.DATABASE_URL;
+		process.env.DATABASE_URL = databasePath;
+		const database = new Database(databasePath);
+		database.exec(`
+			create table match_attempts (
+				match_number integer not null, attempt_number integer not null,
+				problem_set_id text not null, problem_set_version integer not null,
+				status text not null, started_at integer, ended_at integer,
+				created_at integer, updated_at integer, reason text, operated_by text,
+				primary key (match_number, attempt_number)
+			);
+			create table match_assignments (
+				match_number integer not null, team_name text not null,
+				representative_source text not null, lane_number integer not null
+			);
+		`);
+		for (let matchNumber = 1; matchNumber <= 3; matchNumber += 1) {
+			for (let lane = 1; lane <= 6; lane += 1) {
+				database
+					.prepare('insert into match_assignments values (?, ?, ?, ?)')
+					.run(matchNumber, `team-${lane}`, `source-${lane}`, lane);
+			}
+		}
+		database.close();
+
+		try {
+			const manager = createCompetitionManager({ random: () => 0 });
+			const snapshots = [1, 2, 3].map((matchNumber) => {
+				const monitor = new TestSocket();
+				manager.handle(monitor as unknown as WebSocket, {
+					type: 'monitor.subscribe',
+					data: { matchNumber }
+				});
+				return monitor.messages.at(-1)?.data;
+			});
+
+			expect(new Set(snapshots.map((snapshot) => snapshot?.problemSetId)).size).toBe(3);
+			expect(snapshots[0]?.problemSetId).toBe('typing-main-02');
+			expect(snapshots[0]?.lanes).toHaveLength(6);
+			expect(
+				new Set(
+					(snapshots[0]?.lanes as Array<{ displayText: string }>).map((lane) => lane.displayText)
+				).size
+			).toBe(1);
+			expect((snapshots[0]?.lanes as Array<{ displayText: string }>)[0].displayText).toBe('通信');
+		} finally {
+			if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
+			else process.env.DATABASE_URL = previousDatabaseUrl;
+			rmSync(temporaryDirectory, { recursive: true, force: true });
+		}
+	});
+
 	it('reloads assignments cached before setup is complete', () => {
 		const temporaryDirectory = mkdtempSync(join(tmpdir(), 'typing-system-assignment-test-'));
 		const databasePath = join(temporaryDirectory, 'test.db');
