@@ -128,6 +128,66 @@ test('loads the configured tournament and reports database connectivity', async 
 	await expect(response.json()).resolves.toMatchObject({ status: 'ok', database: 'connected' });
 });
 
+test('practices with the competition typing rules without joining a match', async ({ page }) => {
+	await page.goto('/practice');
+	await expect(page.getByRole('heading', { name: 'タイピング練習' })).toBeVisible();
+	await expect(page.getByRole('navigation', { name: 'メインナビゲーション' })).toContainText(
+		'練習'
+	);
+	await expect(page.getByText('3:00', { exact: true })).toBeVisible();
+	const presetSelect = page.getByLabel('問題プリセット');
+	await expect(presetSelect.locator('option')).toHaveCount(10);
+	await presetSelect.selectOption('typing-main-02');
+	await expect(page.locator('.problem-text')).toHaveText('端末');
+
+	await page.getByRole('button', { name: '練習を開始' }).click();
+	await expect(page.getByText('練習中', { exact: true })).toBeVisible();
+	const input = page.getByLabel('練習入力');
+	const firstKey = (await page.locator('.romanized-input').textContent())?.[0];
+	expect(firstKey).toBeTruthy();
+	await input.press(firstKey!);
+	await expect(page.locator('.romanized-input span')).toHaveText(firstKey!);
+	await expect(page.locator('.typing-metrics div').filter({ hasText: '正タイプ' })).toContainText(
+		'1'
+	);
+
+	await input.press(firstKey === 'x' ? 'q' : 'x');
+	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('1');
+
+	await page.getByRole('button', { name: '練習を停止' }).click();
+	await expect(page.getByText('練習終了', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: '練習結果' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'もう一度練習' })).toBeVisible();
+	await page.getByLabel('練習モード').selectOption('c');
+	await expect(page.locator('.problem-text')).toHaveText('#include <stdio.h>');
+	await page.getByRole('button', { name: '練習を開始' }).click();
+	const codeInput = page.getByLabel('練習入力');
+	await codeInput.press('Space');
+	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('0');
+	await codeInput.pressSequentially('#include<stdio.h>intmain(void){');
+	await expect(page.locator('.problem-text')).toHaveText('    int score = 100;');
+	expect(await page.locator('.romanized-input').textContent()).toBe('    int score = 100;');
+	await codeInput.pressSequentially('i');
+	expect(await page.locator('.romanized-input span').textContent()).toBe('    i');
+});
+
+test('shows the practice result when the 180-second timer expires', async ({ page }) => {
+	await page.clock.install({ time: new Date('2026-09-09T00:00:00Z') });
+	await page.goto('/practice');
+	await page.getByRole('button', { name: '練習を開始' }).click();
+	const firstFourKeys = (await page.locator('.romanized-input').textContent())?.slice(0, 4);
+	expect(firstFourKeys).toHaveLength(4);
+	await page.getByLabel('練習入力').pressSequentially(firstFourKeys!);
+
+	await page.clock.fastForward(180_000);
+
+	await expect(page.getByText('0:00', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: '練習結果' })).toBeVisible();
+	await expect(page.getByRole('status')).toContainText(/スコア\s+1/);
+	await expect(page.getByRole('status')).toContainText(/正タイプ\s+4/);
+	await expect(page.getByRole('button', { name: 'もう一度練習' })).toBeVisible();
+});
+
 test('rejects unauthenticated admin WebSocket subscriptions', async () => {
 	const { webSocket, result, closed } = subscribeToAdminStatus();
 	try {

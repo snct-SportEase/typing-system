@@ -21,6 +21,24 @@ describe('realtime server upgrades', () => {
 		expect(destroy).toHaveBeenCalledOnce();
 	});
 
+	it('leaves unrelated upgrades to another server handler', () => {
+		const server = createServer();
+		attachRealtimeServer(server);
+		const delegatedHandler = vi.fn();
+		server.on('upgrade', delegatedHandler);
+		const destroy = vi.fn();
+
+		server.emit(
+			'upgrade',
+			{ url: '/' } as IncomingMessage,
+			{ destroy } as unknown as Socket,
+			Buffer.alloc(0)
+		);
+
+		expect(delegatedHandler).toHaveBeenCalledOnce();
+		expect(destroy).not.toHaveBeenCalled();
+	});
+
 	it('destroys malformed upgrade URLs without throwing', () => {
 		const server = createServer();
 		attachRealtimeServer(server);

@@ -26,7 +26,7 @@ export function attachRealtimeServer(server) {
 			return;
 		}
 		if (url.pathname !== '/ws') {
-			socket.destroy();
+			if (server.listenerCount('upgrade') === 1) socket.destroy();
 			return;
 		}
 

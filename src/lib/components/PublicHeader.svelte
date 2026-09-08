@@ -4,12 +4,16 @@
 	let {
 		tournamentName,
 		current
-	}: { tournamentName: string; current: 'overview' | 'monitoring' | 'competition' } = $props();
+	}: {
+		tournamentName: string;
+		current: 'overview' | 'monitoring' | 'competition' | 'practice';
+	} = $props();
 
 	const links = [
 		{ id: 'overview' as const, label: '大会概要', href: resolve('/') },
 		{ id: 'monitoring' as const, label: 'モニタリング', href: resolve('/monitoring') },
-		{ id: 'competition' as const, label: '競技', href: resolve('/competition') }
+		{ id: 'competition' as const, label: '競技', href: resolve('/competition') },
+		{ id: 'practice' as const, label: '練習', href: resolve('/practice') }
 	];
 </script>
 
