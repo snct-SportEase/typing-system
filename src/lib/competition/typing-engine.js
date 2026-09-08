@@ -283,7 +283,7 @@ function shortest(values) {
  */
 function normalizeKey(key) {
 	if (!key || key.length !== 1) return null;
-	return /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
+	return key;
 }
 
 /**

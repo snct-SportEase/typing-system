@@ -44,6 +44,17 @@ describe('literal input', () => {
 		expect(state.completedProblems).toBe(1);
 		expect(state.incorrectTypes).toBe(0);
 	});
+
+	it('英字の大文字と小文字を区別する', () => {
+		const state = createTypingState(['Hello']);
+
+		expect(
+			applyTypingEvent(state, { type: 'key', key: 'h' }, startsAt, startsAt, endsAt)
+		).toMatchObject({ accepted: true, correct: false });
+		expect(
+			applyTypingEvent(state, { type: 'key', key: 'H' }, startsAt + 1, startsAt, endsAt)
+		).toMatchObject({ accepted: true, correct: true });
+	});
 });
 
 describe('typing event conformance', () => {

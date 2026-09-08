@@ -105,13 +105,13 @@
     },
     {
       "id": "E004",
-      "description": "Shift付き英字を小文字化する",
+      "description": "英字の大文字と小文字を区別する",
       "problems": ["か"],
       "events": [
         {"type":"key","key":"K","shift":true,"receive_offset_ms":100},
         {"type":"key","key":"a","receive_offset_ms":200}
       ],
-      "expected": {"correct_types":2,"incorrect_types":0,"completed_problems":1,"current_problem_index":0,"current_input_position":0}
+      "expected": {"correct_types":0,"incorrect_types":2,"completed_problems":0,"current_problem_index":0,"current_input_position":0}
     },
     {
       "id": "E005",
