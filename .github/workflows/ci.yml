@@ -100,6 +100,30 @@ jobs:
       - name: Build production image
         run: docker build --tag typing-system:ci .
 
+      - name: Start production image and verify health
+        run: |
+          docker run --detach --name typing-system-ci \
+            --env TOURNAMENT_NAME="CI Tournament" \
+            --env ADMIN_USERNAME="ci-admin" \
+            --env ADMIN_PASSWORD="ci-password" \
+            typing-system:ci
+          for attempt in {1..20}; do
+            status="$(docker inspect --format '{{.State.Health.Status}}' typing-system-ci)"
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              break
+            fi
+            sleep 1
+          done
+          docker logs typing-system-ci
+          exit 1
+
+      - name: Stop production container
+        if: always()
+        run: docker rm --force typing-system-ci >/dev/null 2>&1 || true
+
   deploy:
     name: Deploy to Server
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

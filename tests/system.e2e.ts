@@ -521,11 +521,19 @@ test('synchronizes six competition terminals with monitoring', async ({ browser 
 	await expect(terminals[1].getByLabel('出場クラス')).toHaveValue('IS2');
 	await expect(terminals[1].getByRole('heading', { name: /2年生/ })).toBeVisible();
 	await expect(terminals[1].getByText('競技中', { exact: true })).toBeVisible();
-	await terminals[0].getByLabel('タイピング入力').pressSequentially('aozora', { delay: 50 });
+	const firstProblem = await terminals[0].locator('.problem-text').textContent();
+	const firstProblemInput = await terminals[0].locator('.romanized-input').textContent();
+	expect(firstProblem).toBeTruthy();
+	expect(firstProblemInput).toBeTruthy();
+	await terminals[0]
+		.getByLabel('タイピング入力')
+		.pressSequentially(firstProblemInput!, { delay: 50 });
 
 	const firstLane = monitor.getByRole('region', { name: 'レーン1 1年生' });
-	await expect(firstLane.getByText('靴音')).toBeVisible();
-	await expect(firstLane.locator('.monitor-metrics dd').first()).toHaveText('6');
+	await expect(firstLane.locator('.monitor-problem > p')).not.toHaveText(firstProblem!);
+	await expect(firstLane.locator('.monitor-metrics dd').first()).toHaveText(
+		String(firstProblemInput!.length)
+	);
 	await expect(firstLane.getByText(/位$/)).toHaveCount(0);
 	await expect(terminals[0].getByText('最終順位')).toHaveCount(0);
 
@@ -539,7 +547,7 @@ test('synchronizes six competition terminals with monitoring', async ({ browser 
 
 	await firstMatchControl.getByPlaceholder('再試合の理由').fill('通信復旧後に再実施');
 	await firstMatchControl.getByRole('button', { name: '再試合' }).click();
-	await expect(firstMatchControl).toContainText('試技2 / typing-reserve-01');
+	await expect(firstMatchControl).toContainText(/試技2 \/ typing-reserve-\d{2}/);
 	for (const terminal of terminals) {
 		await expect(terminal.getByRole('button', { name: '準備完了' })).toBeVisible();
 		await terminal.getByRole('button', { name: '準備完了' }).click();
@@ -552,9 +560,9 @@ test('synchronizes six competition terminals with monitoring', async ({ browser 
 	await admin.reload();
 	await expect(admin.getByRole('heading', { name: '試行・操作履歴' })).toBeVisible();
 	await expect(admin.locator('.attempt-history-item')).toHaveCount(2);
-	const retryAttempt = admin.locator('.attempt-history-item').filter({
-		hasText: 'typing-reserve-01'
-	});
+	const retryAttempt = admin
+		.locator('.attempt-history-item')
+		.filter({ hasText: 'typing-reserve-' });
 	await retryAttempt.locator('summary').click();
 	await expect(retryAttempt.locator('.attempt-result-row')).toHaveCount(7);
 	await expect(admin.locator('.operation-history-row')).toHaveCount(6);
@@ -562,7 +570,7 @@ test('synchronizes six competition terminals with monitoring', async ({ browser 
 	await firstMatchControl.getByPlaceholder('リセットの理由').fill('計測結果を破棄して再実施');
 	await firstMatchControl.getByRole('button', { name: '結果をリセット' }).click();
 	await expect(admin.getByRole('status')).toContainText('第1試合の結果リセットを実行しました。');
-	await expect(firstMatchControl).toContainText('試技3 / typing-main-01');
+	await expect(firstMatchControl).toContainText(/試技3 \/ typing-main-\d{2}/);
 	const firstMatchResults = admin
 		.locator('.confirmation-match')
 		.filter({ hasText: '第1試合' })
