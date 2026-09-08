@@ -38,7 +38,7 @@ export function requestLockedAssignmentMatchNumbers() {
 
 /**
  * @typedef {{
- *   action: 'interrupt' | 'force_finish' | 'invalidate' | 'retry' | 'disqualify',
+ *   action: 'interrupt' | 'force_finish' | 'invalidate' | 'retry' | 'disqualify' | 'reset',
  *   matchNumber: number,
  *   laneNumber?: number,
  *   reason: string,

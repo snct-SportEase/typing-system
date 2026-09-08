@@ -222,7 +222,9 @@ export function resetMatchResults(
 		let latest = getLatestAttempt(database, matchNumber);
 		if (!latest) latest = createLegacyAttempt(database, matchNumber, operatedAt);
 		if (!latest) return { reset: false, reason: 'attempt_not_found' };
-		if (latest.status === 'running') return { reset: false, reason: 'invalid_status' };
+		if (latest.status === 'running' || latest.status === 'retry_waiting') {
+			return { reset: false, reason: 'invalid_status' };
+		}
 
 		copyCurrentResultsToHistory(database, matchNumber, latest.attemptNumber, operatedAt);
 		database.prepare('delete from match_confirmations where match_number = ?').run(matchNumber);
