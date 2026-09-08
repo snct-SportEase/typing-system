@@ -128,6 +128,27 @@ test('loads the configured tournament and reports database connectivity', async 
 	await expect(response.json()).resolves.toMatchObject({ status: 'ok', database: 'connected' });
 });
 
+test('practices with the competition typing rules without joining a match', async ({ page }) => {
+	await page.goto('/practice');
+	await expect(page.getByRole('heading', { name: 'タイピング練習' })).toBeVisible();
+	await expect(page.getByRole('navigation', { name: 'メインナビゲーション' })).toContainText(
+		'練習'
+	);
+	await expect(page.getByText('1:00', { exact: true })).toBeVisible();
+
+	await page.getByRole('button', { name: '練習を開始' }).click();
+	await expect(page.getByText('練習中', { exact: true })).toBeVisible();
+	const input = page.getByLabel('練習入力');
+	await input.press('a');
+	await expect(page.locator('.romanized-input span')).toHaveText('a');
+	await expect(page.locator('.typing-metrics div').filter({ hasText: '正タイプ' })).toContainText(
+		'1'
+	);
+
+	await input.press('x');
+	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('1');
+});
+
 test('rejects unauthenticated admin WebSocket subscriptions', async () => {
 	const { webSocket, result, closed } = subscribeToAdminStatus();
 	try {
