@@ -10,6 +10,7 @@ import {
 	prepareRetry,
 	recordAttemptStarted,
 	recordStoppedAttempt,
+	resetMatchResults,
 	saveAttemptResults
 } from './competition-operations.js';
 import {
@@ -195,6 +196,35 @@ export function createCompetitionManager() {
 
 			const database = openDatabase();
 			try {
+				if (operation.action === 'reset') {
+					if (room && (room.status === 'countdown' || room.status === 'running')) {
+						return { completed: false, reason: 'invalid_status' };
+					}
+					const preset = mainPresets.get(operation.matchNumber);
+					if (!preset) return { completed: false, reason: 'problem_set_not_found' };
+					const result = resetMatchResults(
+						database,
+						operation.matchNumber,
+						{ problemSetId: preset.problem_set_id, problemSetVersion: preset.version },
+						operation.operatedBy,
+						operation.reason
+					);
+					if (!result.reset || result.attemptNumber === undefined) {
+						return { completed: false, reason: result.reason };
+					}
+					if (room) resetRoom(room, preset, result.attemptNumber);
+					publishResultNotification({
+						type: 'competition.retry-prepared',
+						data: { matchNumber: operation.matchNumber }
+					});
+					broadcastAdminStatus();
+					return {
+						completed: true,
+						attemptNumber: result.attemptNumber,
+						problemSetId: preset.problem_set_id
+					};
+				}
+
 				if (operation.action === 'invalidate') {
 					const result = invalidateMatch(
 						database,

@@ -141,7 +141,8 @@ export const actions = {
 			'force_finish',
 			'invalidate',
 			'retry',
-			'disqualify'
+			'disqualify',
+			'reset'
 		] as const;
 		if (!allowedActions.includes(action as (typeof allowedActions)[number])) {
 			return fail(400, { operationIssue: '操作の種類が正しくありません。' });
@@ -155,7 +156,7 @@ export const actions = {
 		) {
 			return fail(400, { operationIssue: 'レーン番号が正しくありません。' });
 		}
-		if (['invalidate', 'retry', 'disqualify'].includes(action) && !reason) {
+		if (['invalidate', 'retry', 'disqualify', 'reset'].includes(action) && !reason) {
 			return fail(400, { operationIssue: '理由を入力してください。' });
 		}
 		if (!env.ADMIN_USERNAME) throw new Error('ADMIN_USERNAME is not set');
@@ -175,6 +176,7 @@ export const actions = {
 				attempt_not_found: '対象の試技がありません。',
 				match_not_invalidated: '再試合の前に試技を無効化してください。',
 				reserve_exhausted: '利用できる予備問題がありません。',
+				problem_set_not_found: '第1試技の問題が見つかりません。',
 				result_not_found: '対象の試合結果がありません。'
 			};
 			return fail(409, {

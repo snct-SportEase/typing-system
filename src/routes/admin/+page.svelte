@@ -102,6 +102,7 @@
 				force_finish: '強制終了',
 				invalidate: '無効化',
 				retry: '再試合設定',
+				reset: '結果リセット',
 				disqualify: '失格',
 				confirm: '結果確定'
 			}[action] ?? action
@@ -372,6 +373,17 @@
 								<input type="hidden" name="operation" value="invalidate" />
 								<input name="reason" required placeholder="無効化の理由" />
 								<button class="danger-button" type="submit">無効化</button>
+							</form>
+							<form
+								class="reason-operation"
+								method="POST"
+								action="?/competitionOperation"
+								onsubmit={(event) => operationSubmission(event, matchNumber, '結果をリセット')}
+							>
+								<input type="hidden" name="matchNumber" value={matchNumber} />
+								<input type="hidden" name="operation" value="reset" />
+								<input name="reason" required placeholder="リセットの理由" />
+								<button class="danger-button" type="submit">結果をリセット</button>
 							</form>
 						{/if}
 					</div>
