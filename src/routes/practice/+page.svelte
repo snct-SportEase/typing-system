@@ -40,6 +40,12 @@
 		void tick().then(() => typingSurface?.focus());
 	}
 
+	function stopPractice() {
+		if (status !== 'running') return;
+		now = Math.min(Date.now(), endsAt);
+		status = 'finished';
+	}
+
 	function changePracticeMode(event: Event & { currentTarget: HTMLSelectElement }) {
 		practiceMode = event.currentTarget.value as 'typing' | 'c';
 		typingState = createTypingState(practiceMode === 'c' ? codeProblems : practiceProblems);
@@ -119,9 +125,13 @@
 					<option value="c">C言語写経</option>
 				</select>
 			</label>
-			<button class="primary-button" type="button" onclick={startPractice}>
-				{status === 'idle' ? '練習を開始' : 'もう一度練習'}
-			</button>
+			{#if status === 'running'}
+				<button class="danger-button" type="button" onclick={stopPractice}>練習を停止</button>
+			{:else}
+				<button class="primary-button" type="button" onclick={startPractice}>
+					{status === 'idle' ? '練習を開始' : 'もう一度練習'}
+				</button>
+			{/if}
 		</div>
 	</section>
 
