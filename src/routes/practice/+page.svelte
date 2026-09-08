@@ -8,8 +8,10 @@
 	import { onMount, tick, untrack } from 'svelte';
 
 	let { data } = $props();
-	const durationSeconds = 60;
+	const durationSeconds = 180;
 	const practiceProblems = untrack(() => data.problems);
+	const codeProblems = untrack(() => data.codeProblems);
+	let practiceMode = $state<'typing' | 'c'>('typing');
 	let status = $state<'idle' | 'running' | 'finished'>('idle');
 	let now = $state(Date.now());
 	let startsAt = $state(0);
@@ -28,7 +30,7 @@
 	});
 
 	function startPractice() {
-		typingState = createTypingState(practiceProblems);
+		typingState = createTypingState(practiceMode === 'c' ? codeProblems : practiceProblems);
 		view = getTypingView(typingState);
 		lastInputCorrect = null;
 		startsAt = Date.now();
@@ -36,6 +38,14 @@
 		now = startsAt;
 		status = 'running';
 		void tick().then(() => typingSurface?.focus());
+	}
+
+	function changePracticeMode(event: Event & { currentTarget: HTMLSelectElement }) {
+		practiceMode = event.currentTarget.value as 'typing' | 'c';
+		typingState = createTypingState(practiceMode === 'c' ? codeProblems : practiceProblems);
+		view = getTypingView(typingState);
+		lastInputCorrect = null;
+		status = 'idle';
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -98,11 +108,20 @@
 		<div>
 			<p class="eyebrow">PRACTICE</p>
 			<h1 id="practice-heading">タイピング練習</h1>
-			<p>本番と同じローマ字入力ルールで、60秒間練習できます。</p>
+			<p>本番と同じ180秒で、通常入力またはC言語の写経を練習できます。</p>
 		</div>
-		<button class="primary-button" type="button" onclick={startPractice}>
-			{status === 'idle' ? '練習を開始' : 'もう一度練習'}
-		</button>
+		<div class="practice-controls">
+			<label>
+				<span>練習モード</span>
+				<select value={practiceMode} disabled={status === 'running'} onchange={changePracticeMode}>
+					<option value="typing">タイピング</option>
+					<option value="c">C言語写経</option>
+				</select>
+			</label>
+			<button class="primary-button" type="button" onclick={startPractice}>
+				{status === 'idle' ? '練習を開始' : 'もう一度練習'}
+			</button>
+		</div>
 	</section>
 
 	<section
@@ -130,8 +149,8 @@
 
 		<div class="practice-stage">
 			<p class="problem-counter">問題 {view.problemIndex + 1} / {view.problemCount}</p>
-			<p class="problem-text">{view.displayText}</p>
-			<p class="problem-reading">{view.reading}</p>
+			<p class="problem-text" class:is-code={practiceMode === 'c'}>{view.displayText}</p>
+			{#if practiceMode === 'typing'}<p class="problem-reading">{view.reading}</p>{/if}
 			<p class="romanized-input">
 				<span>{view.romanizedText.slice(0, view.inputPosition)}</span>{view.romanizedText.slice(
 					view.inputPosition

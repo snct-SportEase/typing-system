@@ -20,6 +20,16 @@ export const load: PageServerLoad = () => {
 		problems: preset.problems.map((problem) => ({
 			displayText: problem.display_text,
 			reading: problem.reading
-		}))
+		})),
+		codeProblems: [
+			'#include <stdio.h>',
+			'int main(void) {',
+			'    int score = 100;',
+			'    const char *message = "hello, world";',
+			'    printf("%s\\n", message);',
+			'    printf("score: %d\\n", score);',
+			'    return 0;',
+			'}'
+		].map((source) => ({ displayText: source, reading: source }))
 	};
 };
