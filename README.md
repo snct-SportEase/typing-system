@@ -1,8 +1,8 @@
-# typing-system
+# KeySprint
 
 [![CI](https://github.com/Saku0512/typing-system/actions/workflows/ci.yml/badge.svg)](https://github.com/Saku0512/typing-system/actions/workflows/ci.yml)
 
-秋季スポーツ大会で使用する独自タイピングシステムの開発コンペティション用リポジトリです。
+秋季スポーツ大会で使用する競技タイピングシステム「KeySprint」の開発コンペティション用リポジトリです。
 
 参加者はこのリポジトリをForkし、自分のFork上でシステムを実装してください。競技の公平性とSportEaseとの互換性を保つため、`docs/`にあるコア仕様、JSON Schema、問題プリセットは共通仕様として扱います。
 
@@ -30,7 +30,7 @@
 
 ## SportEaseとの連携
 
-独自タイピングシステムは単体で大会準備、競技進行、結果確定までを行います。3試合終了後、仕様に従った確定結果JSONを出力し、SportEaseへ取り込みます。
+KeySprintは単体で大会準備、競技進行、結果確定までを行います。3試合終了後、仕様に従った確定結果JSONを出力し、SportEaseへ取り込みます。
 
 ## 開発環境
 

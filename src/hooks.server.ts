@@ -17,7 +17,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (!authenticated) {
 		return new Response('Authentication required', {
 			status: 401,
-			headers: { 'www-authenticate': 'Basic realm="Typing System Admin", charset="UTF-8"' }
+			headers: { 'www-authenticate': 'Basic realm="KeySprint Admin", charset="UTF-8"' }
 		});
 	}
 

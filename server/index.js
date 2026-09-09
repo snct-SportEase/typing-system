@@ -22,7 +22,7 @@ const server = createServer((request, response) => {
 const webSocketServer = attachRealtimeServer(server);
 
 server.listen(port, host, () => {
-	console.log(`Typing System listening on http://${host}:${port}`);
+	console.log(`KeySprint listening on http://${host}:${port}`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
