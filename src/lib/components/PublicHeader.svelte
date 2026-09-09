@@ -20,7 +20,7 @@
 <header class="app-header public-header">
 	<a class="header-brand" href={resolve('/')} aria-label={`KeySprint - ${tournamentName}`}>
 		<img class="brand-logo" src="/KeySprint-logo_real.png" alt="KeySprint" />
-		<span class="header-title">{tournamentName}</span>
+		<h1 class="header-title">{tournamentName}</h1>
 	</a>
 	<nav class="public-nav" aria-label="メインナビゲーション">
 		{#each links as link (link.id)}
