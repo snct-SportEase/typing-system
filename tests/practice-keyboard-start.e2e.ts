@@ -4,6 +4,7 @@ for (const key of ['Space', 'Enter']) {
 	test(`starts practice with ${key}`, async ({ page }) => {
 		await page.clock.install({ time: new Date('2026-09-09T00:00:00Z') });
 		await page.goto('/practice');
+		await page.waitForLoadState('networkidle');
 
 		await page.keyboard.press(key);
 
