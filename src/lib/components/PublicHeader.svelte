@@ -19,7 +19,7 @@
 
 <header class="app-header public-header">
 	<a class="header-brand" href={resolve('/')}>
-		<span class="product-name">Typing System</span>
+		<span class="product-name">KeySprint</span>
 		<h1 class="header-title">{tournamentName}</h1>
 	</a>
 	<nav class="public-nav" aria-label="メインナビゲーション">

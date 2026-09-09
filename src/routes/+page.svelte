@@ -43,7 +43,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.tournamentName} | Typing System</title>
+	<title>{data.tournamentName} | KeySprint</title>
 	<meta name="description" content={`${data.tournamentName}の競技タイピング運営画面`} />
 </svelte:head>
 
