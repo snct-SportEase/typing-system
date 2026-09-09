@@ -90,7 +90,19 @@
 		status = 'idle';
 	}
 
-	function handleStartShortcut(event: KeyboardEvent) {
+	function isInteractiveTarget(target: EventTarget | null) {
+		return (
+			target instanceof Element &&
+			Boolean(target.closest('button, select, textarea, a, input:not(.typing-capture)'))
+		);
+	}
+
+	function handleWindowKeydown(event: KeyboardEvent) {
+		if (status === 'running') {
+			if (isInteractiveTarget(event.target)) return;
+			handleKeydown(event);
+			return;
+		}
 		if (status !== 'idle' && status !== 'finished') return;
 		if (event.key !== ' ' && event.key !== 'Enter') return;
 		if (
@@ -104,13 +116,7 @@
 		) {
 			return;
 		}
-		const target = event.target;
-		if (
-			target instanceof Element &&
-			target.closest('button, select, textarea, a, input:not(.typing-capture)')
-		) {
-			return;
-		}
+		if (isInteractiveTarget(event.target)) return;
 		event.preventDefault();
 		startPractice();
 	}
@@ -196,7 +202,7 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleStartShortcut} />
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <svelte:head>
 	<title>タイピング練習 | {data.tournamentName}</title>
@@ -259,7 +265,6 @@
 			readonly
 			value=""
 			bind:this={typingSurface}
-			onkeydown={handleKeydown}
 			onpaste={(event) => event.preventDefault()}
 			oncontextmenu={(event) => event.preventDefault()}
 		/>
