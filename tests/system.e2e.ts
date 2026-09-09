@@ -161,6 +161,7 @@ test('practices with the competition typing rules without joining a match', asyn
 	await page.getByLabel('練習モード').selectOption('c');
 	await expect(page.locator('.problem-text')).toHaveText('#include <stdio.h>');
 	await page.getByRole('button', { name: '練習を開始' }).click();
+	await expect(page.getByText('練習中', { exact: true })).toBeVisible();
 	const codeInput = page.getByLabel('練習入力');
 	await codeInput.press('Space');
 	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('0');
@@ -175,6 +176,7 @@ test('shows the practice result when the 180-second timer expires', async ({ pag
 	await page.clock.install({ time: new Date('2026-09-09T00:00:00Z') });
 	await page.goto('/practice');
 	await page.getByRole('button', { name: '練習を開始' }).click();
+	await page.clock.fastForward(3_000);
 	const firstFourKeys = (await page.locator('.romanized-input').textContent())?.slice(0, 4);
 	expect(firstFourKeys).toHaveLength(4);
 	await page.getByLabel('練習入力').pressSequentially(firstFourKeys!);
