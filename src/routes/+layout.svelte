@@ -11,3 +11,10 @@
 </svelte:head>
 
 {@render children()}
+
+<style>
+	:global(.romanized-input span) {
+		color: #182021;
+		background: #dbeafe;
+	}
+</style>
