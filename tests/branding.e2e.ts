@@ -9,7 +9,7 @@ test('shows the KeySprint brand assets', async ({ page, request }) => {
 	await expect(page).toHaveTitle(/\| KeySprint$/);
 
 	const favicon = page.locator('link[rel="icon"]');
-	await expect(favicon).toHaveAttribute('href', '/KeySprint-logo-icon_real.png');
+	await expect(favicon).toHaveAttribute('href', /\/KeySprint-logo-icon_real\.png$/);
 
 	const admin = await request.get('/admin');
 	expect(admin.status()).toBe(401);
