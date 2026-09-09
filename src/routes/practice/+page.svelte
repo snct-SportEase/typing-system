@@ -11,11 +11,12 @@
 
 	let { data } = $props();
 	const durationSeconds = 180;
+	const countdownSeconds = 3;
 	const practicePresets = untrack(() => data.presets);
 	const codeProblems = untrack(() => data.codeProblems);
 	let practiceMode = $state<'typing' | 'c'>('typing');
 	let selectedPresetId = $state(practicePresets[0].id);
-	let status = $state<'idle' | 'running' | 'finished'>('idle');
+	let status = $state<'idle' | 'countdown' | 'running' | 'finished'>('idle');
 	let now = $state(Date.now());
 	let startsAt = $state(0);
 	let endsAt = $state(0);
@@ -26,9 +27,16 @@
 
 	onMount(() => {
 		const timer = setInterval(() => {
-			if (status !== 'running') return;
+			if (status !== 'countdown' && status !== 'running') return;
 			now = Math.min(Date.now(), endsAt);
-			if (now >= endsAt) status = 'finished';
+			if (now >= endsAt) {
+				status = 'finished';
+				return;
+			}
+			if (status === 'countdown' && now >= startsAt) {
+				status = 'running';
+				void tick().then(() => typingSurface?.focus());
+			}
 		}, 100);
 		return () => clearInterval(timer);
 	});
@@ -39,14 +47,21 @@
 		typingState = createTypingState(problems);
 		view = getTypingView(typingState);
 		lastInputCorrect = null;
-		startsAt = Date.now();
+		const countdownStartedAt = Date.now();
+		startsAt = countdownStartedAt + countdownSeconds * 1_000;
 		endsAt = startsAt + durationSeconds * 1_000;
-		now = startsAt;
-		status = 'running';
-		void tick().then(() => typingSurface?.focus());
+		now = countdownStartedAt;
+		status = 'countdown';
 	}
 
 	function stopPractice() {
+		if (status === 'countdown') {
+			status = 'idle';
+			startsAt = 0;
+			endsAt = 0;
+			now = Date.now();
+			return;
+		}
 		if (status !== 'running') return;
 		now = Math.min(Date.now(), endsAt);
 		status = 'finished';
@@ -101,12 +116,17 @@
 	}
 
 	function remainingSeconds() {
-		if (status === 'idle') return durationSeconds;
+		if (status === 'idle' || status === 'countdown') return durationSeconds;
 		return Math.max(0, Math.ceil((endsAt - now) / 1_000));
 	}
 
+	function countdown() {
+		if (status !== 'countdown') return 0;
+		return Math.max(0, Math.ceil((startsAt - now) / 1_000));
+	}
+
 	function elapsedMinutes() {
-		if (status === 'idle') return 0;
+		if (status === 'idle' || status === 'countdown') return 0;
 		return Math.max(1 / 60, (Math.min(now, endsAt) - startsAt) / 60_000);
 	}
 
@@ -126,6 +146,13 @@
 
 	function formatTime(seconds: number) {
 		return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+	}
+
+	function statusText() {
+		if (status === 'idle') return '開始前';
+		if (status === 'countdown') return `${countdown()}`;
+		if (status === 'running') return '練習中';
+		return '練習終了';
 	}
 
 	function inputGuideText() {
@@ -161,7 +188,11 @@
 		<div class="practice-controls">
 			<label>
 				<span>練習モード</span>
-				<select value={practiceMode} disabled={status === 'running'} onchange={changePracticeMode}>
+				<select
+					value={practiceMode}
+					disabled={status === 'countdown' || status === 'running'}
+					onchange={changePracticeMode}
+				>
 					<option value="typing">タイピング</option>
 					<option value="c">C言語写経</option>
 				</select>
@@ -171,7 +202,7 @@
 				<select
 					aria-label="問題プリセット"
 					value={selectedPresetId}
-					disabled={status === 'running' || practiceMode === 'c'}
+					disabled={status === 'countdown' || status === 'running' || practiceMode === 'c'}
 					onchange={changePreset}
 				>
 					{#each practicePresets as preset (preset.id)}
@@ -179,7 +210,7 @@
 					{/each}
 				</select>
 			</label>
-			{#if status === 'running'}
+			{#if status === 'countdown' || status === 'running'}
 				<button class="danger-button" type="button" onclick={stopPractice}>練習を停止</button>
 			{:else}
 				<button class="primary-button" type="button" onclick={startPractice}>
@@ -206,9 +237,7 @@
 			oncontextmenu={(event) => event.preventDefault()}
 		/>
 		<header>
-			<span class="practice-status">
-				{status === 'idle' ? '開始前' : status === 'running' ? '練習中' : '練習終了'}
-			</span>
+			<span class="practice-status" aria-live="polite">{statusText()}</span>
 			<time>{formatTime(remainingSeconds())}</time>
 		</header>
 
