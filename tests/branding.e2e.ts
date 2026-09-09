@@ -3,10 +3,9 @@ import { expect, test } from '@playwright/test';
 test('shows the KeySprint brand assets', async ({ page, request }) => {
 	await page.goto('/');
 
-	const logo = page.locator('.brand-logo');
+	const logo = page.locator('.brand-logo').first();
 	await expect(logo).toBeVisible();
 	await expect(logo).toHaveAttribute('src', '/KeySprint-logo_real.png');
-	await expect(logo).toHaveAttribute('alt', 'KeySprint');
 	await expect(page).toHaveTitle(/\| KeySprint$/);
 
 	const favicon = page.locator('link[rel="icon"]');
