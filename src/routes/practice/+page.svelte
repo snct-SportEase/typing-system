@@ -90,6 +90,31 @@
 		status = 'idle';
 	}
 
+	function handleStartShortcut(event: KeyboardEvent) {
+		if (status !== 'idle' && status !== 'finished') return;
+		if (event.key !== ' ' && event.key !== 'Enter') return;
+		if (
+			event.defaultPrevented ||
+			event.repeat ||
+			event.isComposing ||
+			event.shiftKey ||
+			event.ctrlKey ||
+			event.altKey ||
+			event.metaKey
+		) {
+			return;
+		}
+		const target = event.target;
+		if (
+			target instanceof Element &&
+			target.closest('button, select, textarea, a, input:not(.typing-capture)')
+		) {
+			return;
+		}
+		event.preventDefault();
+		startPractice();
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
 		if (status !== 'running') return;
 		event.preventDefault();
@@ -170,6 +195,8 @@
 		return sourceIndex;
 	}
 </script>
+
+<svelte:window onkeydown={handleStartShortcut} />
 
 <svelte:head>
 	<title>タイピング練習 | {data.tournamentName}</title>
@@ -283,7 +310,7 @@
 		</div>
 
 		{#if status === 'idle'}
-			<p class="practice-overlay">「練習を開始」を押してください</p>
+			<p class="practice-overlay">「練習を開始」を押すか、Space / Enter キーを押してください</p>
 		{/if}
 
 		<dl class="typing-metrics">
