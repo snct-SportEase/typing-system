@@ -198,6 +198,7 @@
 			if (view.displayText[sourceIndex] !== ' ') inputIndex += 1;
 			sourceIndex += 1;
 		}
+		while (view.displayText[sourceIndex] === ' ') sourceIndex += 1;
 		return sourceIndex;
 	}
 </script>

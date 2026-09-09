@@ -165,7 +165,9 @@ test('practices with the competition typing rules without joining a match', asyn
 	const codeInput = page.getByLabel('練習入力');
 	await codeInput.press('Space');
 	await expect(page.locator('.typing-metrics div').filter({ hasText: 'ミス' })).toContainText('0');
-	await codeInput.pressSequentially('#include<stdio.h>intmain(void){');
+	await codeInput.pressSequentially('#include<stdio.h>int');
+	await expect(page.locator('.romanized-input span')).toHaveText('int ');
+	await codeInput.pressSequentially('main(void){');
 	await expect(page.locator('.problem-text')).toHaveText('    int score = 100;');
 	expect(await page.locator('.romanized-input').textContent()).toBe('    int score = 100;');
 	await codeInput.pressSequentially('i');
