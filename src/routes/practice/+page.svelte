@@ -26,8 +26,9 @@
 
 	onMount(() => {
 		const timer = setInterval(() => {
-			now = Date.now();
-			if (status === 'running' && now >= endsAt) status = 'finished';
+			if (status !== 'running') return;
+			now = Math.min(Date.now(), endsAt);
+			if (now >= endsAt) status = 'finished';
 		}, 100);
 		return () => clearInterval(timer);
 	});
