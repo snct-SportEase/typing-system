@@ -51,6 +51,12 @@
 	let selectionLocked = $derived(
 		ownLane?.ready || snapshot?.status === 'countdown' || snapshot?.status === 'running'
 	);
+	let connectButtonDisabled = $derived(
+		!assignment ||
+			selectionLocked ||
+			connectionState === 'connecting' ||
+			connectionState === 'connected'
+	);
 
 	onMount(() => {
 		const clock = setInterval(() => (now = Date.now()), 100);
@@ -302,7 +308,7 @@
 					>{/each}
 			</select>
 		</label>
-		<button type="button" onclick={connectTerminal} disabled={!assignment || selectionLocked}>
+		<button type="button" onclick={connectTerminal} disabled={connectButtonDisabled}>
 			端末を接続
 		</button>
 	</section>
