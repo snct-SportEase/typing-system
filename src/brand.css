@@ -16,7 +16,8 @@
 
 body {
 	color: var(--ks-ink);
-	background: radial-gradient(circle at 8% -6%, rgb(46 175 255 / 18%), transparent 30rem),
+	background:
+		radial-gradient(circle at 8% -6%, rgb(46 175 255 / 18%), transparent 30rem),
 		linear-gradient(180deg, #f8fbff 0%, #f3f7fc 48%, #edf3f9 100%);
 }
 
@@ -159,7 +160,9 @@ h3 {
 }
 
 .overall-table {
-	box-shadow: 0 14px 30px rgb(7 45 91 / 8%), inset 0 3px var(--ks-blue-500);
+	box-shadow:
+		0 14px 30px rgb(7 45 91 / 8%),
+		inset 0 3px var(--ks-blue-500);
 }
 
 code {
@@ -246,7 +249,9 @@ select,
 
 .monitor-lane.is-running {
 	border-color: var(--ks-blue-400);
-	box-shadow: inset 0 3px var(--ks-blue-500), 0 12px 28px rgb(7 45 91 / 10%);
+	box-shadow:
+		inset 0 3px var(--ks-blue-500),
+		0 12px 28px rgb(7 45 91 / 10%);
 }
 
 .monitor-lane-number {
@@ -257,8 +262,7 @@ select,
 }
 
 .monitor-problem {
-	background: radial-gradient(circle at 50% 0%, rgb(46 175 255 / 7%), transparent 13rem),
-		#fbfdff;
+	background: radial-gradient(circle at 50% 0%, rgb(46 175 255 / 7%), transparent 13rem), #fbfdff;
 }
 
 .monitor-roman span {
@@ -294,7 +298,9 @@ select,
 .typing-terminal:focus-visible,
 .typing-terminal.is-running {
 	border-color: var(--ks-blue-400);
-	box-shadow: 0 0 0 3px rgb(17 156 255 / 16%), var(--ks-shadow);
+	box-shadow:
+		0 0 0 3px rgb(17 156 255 / 16%),
+		var(--ks-shadow);
 }
 
 .practice-terminal > header,
@@ -316,7 +322,8 @@ select,
 
 .practice-stage,
 .typing-stage {
-	background: radial-gradient(circle at 50% 16%, rgb(46 175 255 / 10%), transparent 21rem),
+	background:
+		radial-gradient(circle at 50% 16%, rgb(46 175 255 / 10%), transparent 21rem),
 		linear-gradient(180deg, #fff, #fbfdff);
 }
 
