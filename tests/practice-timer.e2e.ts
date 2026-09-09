@@ -4,6 +4,7 @@ test('freezes the timer and input speed after stopping practice', async ({ page 
 	await page.clock.install({ time: new Date('2026-09-09T00:00:00Z') });
 	await page.goto('/practice');
 	await page.getByRole('button', { name: '練習を開始' }).click();
+	await page.clock.fastForward(3_000);
 
 	const input = page.getByLabel('練習入力');
 	const firstFourKeys = (await page.locator('.romanized-input').textContent())?.slice(0, 4);
