@@ -111,12 +111,13 @@
 	}
 
 	function wpm() {
-		return view.correctTypes / 5 / elapsedMinutes();
+		const elapsed = elapsedMinutes();
+		return elapsed === 0 ? 0 : view.correctTypes / 5 / elapsed;
 	}
 
 	function accuracy() {
 		const total = view.correctTypes + view.incorrectTypes;
-		return total === 0 ? 1 : view.correctTypes / total;
+		return total === 0 ? 0 : view.correctTypes / total;
 	}
 
 	function score() {
