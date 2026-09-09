@@ -1,7 +1,6 @@
 <script lang="ts">
 	import '../app.css';
 	import '../brand.css';
-	import '../logo-theme.css';
 
 	let { children } = $props();
 </script>
