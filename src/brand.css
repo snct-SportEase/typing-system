@@ -368,8 +368,8 @@ select,
 	border-color: rgb(46 175 255 / 18%);
 }
 
-.match-editor h3 {
-	padding-inline: 16px;
+.match-heading {
+	padding: 16px 16px 0;
 }
 
 @media (max-width: 760px) {
