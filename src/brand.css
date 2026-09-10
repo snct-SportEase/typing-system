@@ -362,10 +362,33 @@ select,
 	color: var(--ks-blue-600);
 }
 
+.admin-header .header-brand {
+	gap: 14px;
+}
+
+.admin-brand-copy {
+	min-width: 0;
+}
+
+.admin-brand-copy h1 {
+	margin: 0;
+	font-size: 1.1rem;
+	color: #f8fafc;
+}
+
 .admin-header .header-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 42px;
+	padding: 0 16px;
 	color: #dff3ff;
+	font-size: 0.82rem;
+	font-weight: 700;
+	text-decoration: none;
 	background: rgb(17 156 255 / 10%);
-	border-color: rgb(46 175 255 / 18%);
+	border: 1px solid rgb(46 175 255 / 18%);
+	border-radius: 10px;
 }
 
 .match-heading {
