@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/Saku0512/typing-system/actions/workflows/ci.yml/badge.svg)](https://github.com/Saku0512/typing-system/actions/workflows/ci.yml)
 
+<img width="1797" height="1038" alt="image" src="https://github.com/user-attachments/assets/45d23a04-52dc-4397-946c-1a37c3538f7d" />
+
 秋季スポーツ大会で使用する競技タイピングシステム「KeySprint」の開発コンペティション用リポジトリです。
 
 参加者はこのリポジトリをForkし、自分のFork上でシステムを実装してください。競技の公平性とSportEaseとの互換性を保つため、`docs/`にあるコア仕様、JSON Schema、問題プリセットは共通仕様として扱います。
