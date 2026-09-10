@@ -368,6 +368,10 @@ select,
 	border-color: rgb(46 175 255 / 18%);
 }
 
+.match-editor h3 {
+	padding-inline: 16px;
+}
+
 @media (max-width: 760px) {
 	.app-header {
 		align-items: stretch;
