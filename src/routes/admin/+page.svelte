@@ -204,10 +204,13 @@
 </svelte:head>
 
 <header class="app-header admin-header">
-	<div>
-		<p class="product-name">{data.tournamentName}</p>
-		<h1>大会管理</h1>
-	</div>
+	<a class="header-brand" href={resolve('/')} aria-label="KeySprint 大会概要">
+		<img class="brand-logo" src="/KeySprint-logo_real.png" alt="KeySprint" />
+		<div class="admin-brand-copy">
+			<p class="product-name">{data.tournamentName}</p>
+			<h1>大会管理</h1>
+		</div>
+	</a>
 	<a class="header-link" href={resolve('/')}>大会概要</a>
 </header>
 
